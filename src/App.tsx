@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { usePortfolio } from './context/PortfolioContext'
-import { supabase } from './lib/supabase'
 import Portfolio from './pages/Portfolio'
 import PrivateLogin from './pages/PrivateLogin'
 import EditPage from './pages/EditPage'
 import BugOverlay from './components/BugOverlay'
 
 function ThemeApplicator({ children }: { children: React.ReactNode }) {
-  const { settings, refresh } = usePortfolio()
+  const { settings, updateTheme } = usePortfolio()
   const [showBugs, setShowBugs] = useState(false)
   const [prevTheme, setPrevTheme] = useState<string | null>(null)
 
@@ -31,8 +30,7 @@ function ThemeApplicator({ children }: { children: React.ReactNode }) {
 
   const switchDark = async () => {
     setShowBugs(false)
-    await supabase.from('portfolio_settings').update({ theme: 'dark', updated_at: new Date().toISOString() }).eq('id', 1)
-    await refresh()
+    await updateTheme('dark')
   }
 
   return (

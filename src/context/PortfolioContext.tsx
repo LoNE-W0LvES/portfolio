@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
-import type { PortfolioSettings, RepoVisibility } from '../lib/supabase'
+import type { PortfolioSettings, RepoVisibility, Theme } from '../lib/supabase'
 
 interface PortfolioContextValue {
   settings: PortfolioSettings | null
   repoVisibility: RepoVisibility[]
   loading: boolean
   refresh: () => Promise<void>
+  updateTheme: (theme: Theme) => Promise<void>
 }
 
 const PortfolioContext = createContext<PortfolioContextValue | null>(null)
@@ -28,8 +29,16 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => { fetchData() }, [])
 
+  const updateTheme = async (theme: Theme) => {
+    setSettings(prev => prev ? { ...prev, theme } : prev)
+    await supabase
+      .from('portfolio_settings')
+      .update({ theme, updated_at: new Date().toISOString() })
+      .eq('id', 1)
+  }
+
   return (
-    <PortfolioContext.Provider value={{ settings, repoVisibility, loading, refresh: fetchData }}>
+    <PortfolioContext.Provider value={{ settings, repoVisibility, loading, refresh: fetchData, updateTheme }}>
       {children}
     </PortfolioContext.Provider>
   )

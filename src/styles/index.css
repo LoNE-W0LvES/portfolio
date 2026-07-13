@@ -285,6 +285,12 @@ a.timeline-inst:hover{color:var(--accent)}
 .color-text:focus{border-color:var(--accent)}
 .accent-preview{display:flex;align-items:center;gap:12px;font-size:.875rem;color:var(--text2)}
 
+/* THEME TOGGLE FAB */
+.theme-toggle-fab{position:fixed;top:20px;right:20px;z-index:100;width:44px;height:44px;border-radius:50%;border:1px solid var(--border);background:var(--bg2);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .25s cubic-bezier(.4,0,.2,1);box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.theme-toggle-fab:hover{transform:scale(1.1) rotate(15deg);box-shadow:0 4px 20px rgba(0,0,0,.25)}
+.theme-toggle-fab:active{transform:scale(.95)}
+.theme-toggle-fab svg{transition:transform .3s ease}
+
 /* EDIT REPOS */
 .edit-repos-panel{display:flex;flex-direction:column;gap:16px}
 .edit-repos-empty,.edit-repos-loading{text-align:center;padding:60px 24px;color:var(--text2);display:flex;flex-direction:column;align-items:center;gap:12px}

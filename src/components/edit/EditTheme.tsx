@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import type { PortfolioSettings, Theme } from '../../lib/supabase'
+import type { PortfolioSettings } from '../../lib/supabase'
 
 interface Props {
   settings: PortfolioSettings | null
@@ -14,59 +14,23 @@ const ACCENT_PRESETS = [
 ]
 
 export default function EditTheme({ settings, saving, onSave }: Props) {
-  const [theme, setTheme] = useState<Theme>('dark')
   const [accent, setAccent] = useState('#3b82f6')
 
   useEffect(() => {
     if (settings) {
-      setTheme(settings.theme)
       setAccent(settings.accent_color)
     }
   }, [settings])
 
-  const handleSave = () => onSave({ theme, accent_color: accent })
+  const handleSave = () => onSave({ accent_color: accent })
 
   return (
     <div className="edit-theme-panel">
       <div className="edit-section-group">
-        <h3 className="edit-group-title">Color Theme</h3>
-        <p className="edit-hint" style={{ marginBottom: 0 }}>
-          Switching to light mode will trigger a special surprise. You've been warned.
-        </p>
-        <div className="theme-options">
-          {(['dark', 'light'] as Theme[]).map(t => (
-            <button
-              key={t}
-              className={`theme-option ${theme === t ? 'active' : ''}`}
-              onClick={() => setTheme(t)}
-            >
-              <span className="theme-option-icon">
-                {t === 'light' ? (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="22" height="22">
-                    <circle cx="12" cy="12" r="5"/>
-                    <line x1="12" y1="1" x2="12" y2="3"/>
-                    <line x1="12" y1="21" x2="12" y2="23"/>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                    <line x1="1" y1="12" x2="3" y2="12"/>
-                    <line x1="21" y1="12" x2="23" y2="12"/>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-                  </svg>
-                ) : (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="22" height="22">
-                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
-                  </svg>
-                )}
-              </span>
-              <span className="theme-option-label">{t.charAt(0).toUpperCase() + t.slice(1)}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="edit-section-group">
         <h3 className="edit-group-title">Accent Color</h3>
+        <p className="edit-hint" style={{ marginBottom: 0 }}>
+          Choose the accent color used for buttons, links, and highlights across your portfolio.
+        </p>
         <div className="accent-presets">
           {ACCENT_PRESETS.map(color => (
             <button
