@@ -8,8 +8,11 @@ import EditProfile from '../components/edit/EditProfile'
 import EditSections from '../components/edit/EditSections'
 import EditTheme from '../components/edit/EditTheme'
 import EditRepos from '../components/edit/EditRepos'
+import EditSkills from '../components/edit/EditSkills'
+import EditCvProjects from '../components/edit/EditCvProjects'
+import EditEducation from '../components/edit/EditEducation'
 
-type Tab = 'profile' | 'sections' | 'theme' | 'repos'
+type Tab = 'profile' | 'sections' | 'theme' | 'repos' | 'skills' | 'projects' | 'education'
 
 export default function EditPage() {
   const { isOwner, loading: authLoading, signOut } = useAuth()
@@ -30,10 +33,7 @@ export default function EditPage() {
     setReposLoading(true)
     fetch(`https://api.github.com/users/${settings.github_username}/repos?per_page=100&sort=updated`)
       .then(r => r.json())
-      .then(data => {
-        if (Array.isArray(data)) setRepos(data)
-        setReposLoading(false)
-      })
+      .then(data => { if (Array.isArray(data)) setRepos(data); setReposLoading(false) })
       .catch(() => setReposLoading(false))
   }, [settings?.github_username])
 
@@ -50,7 +50,7 @@ export default function EditPage() {
     } else {
       setSaveMsg('Saved!')
       await refresh()
-      setTimeout(() => setSaveMsg(''), 2000)
+      setTimeout(() => setSaveMsg(''), 2500)
     }
   }
 
@@ -64,20 +64,16 @@ export default function EditPage() {
     await refresh()
   }
 
-  if (authLoading) {
-    return (
-      <div className="portfolio-loading">
-        <div className="spinner" />
-      </div>
-    )
-  }
-
+  if (authLoading) return <div className="portfolio-loading"><div className="spinner" /></div>
   if (!isOwner) return null
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'profile', label: 'Profile' },
     { id: 'sections', label: 'Sections' },
     { id: 'theme', label: 'Theme' },
+    { id: 'skills', label: 'Skills' },
+    { id: 'education', label: 'Education' },
+    { id: 'projects', label: 'Projects' },
     { id: 'repos', label: 'Repos' },
   ]
 
@@ -86,45 +82,32 @@ export default function EditPage() {
       <header className="edit-header">
         <div className="edit-header-left">
           <button onClick={() => navigate('/')} className="edit-back-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18">
-              <path d="M19 12H5M5 12l7 7M5 12l7-7" />
-            </svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>
             View Portfolio
           </button>
           <h1 className="edit-title">Edit Portfolio</h1>
         </div>
         <div className="edit-header-right">
-          {saveMsg && (
-            <span className={`save-msg ${saveMsg.startsWith('Error') ? 'save-msg-error' : 'save-msg-ok'}`}>
-              {saveMsg}
-            </span>
-          )}
+          {saveMsg && <span className={`save-msg ${saveMsg.startsWith('Error') ? 'save-msg-error' : 'save-msg-ok'}`}>{saveMsg}</span>}
           <button onClick={signOut} className="edit-signout-btn">Sign Out</button>
         </div>
       </header>
 
       <nav className="edit-tabs">
         {tabs.map(t => (
-          <button
-            key={t.id}
-            className={`edit-tab ${tab === t.id ? 'active' : ''}`}
-            onClick={() => setTab(t.id)}
-          >
+          <button key={t.id} className={`edit-tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
             {t.label}
           </button>
         ))}
       </nav>
 
       <main className="edit-main">
-        {tab === 'profile' && (
-          <EditProfile settings={settings} saving={saving} onSave={saveSettings} />
-        )}
-        {tab === 'sections' && (
-          <EditSections settings={settings} saving={saving} onSave={saveSettings} />
-        )}
-        {tab === 'theme' && (
-          <EditTheme settings={settings} saving={saving} onSave={saveSettings} />
-        )}
+        {tab === 'profile' && <EditProfile settings={settings} saving={saving} onSave={saveSettings} />}
+        {tab === 'sections' && <EditSections settings={settings} saving={saving} onSave={saveSettings} />}
+        {tab === 'theme' && <EditTheme settings={settings} saving={saving} onSave={saveSettings} />}
+        {tab === 'skills' && <EditSkills settings={settings} saving={saving} onSave={saveSettings} />}
+        {tab === 'education' && <EditEducation settings={settings} saving={saving} onSave={saveSettings} />}
+        {tab === 'projects' && <EditCvProjects settings={settings} saving={saving} onSave={saveSettings} />}
         {tab === 'repos' && (
           <EditRepos
             repos={repos}

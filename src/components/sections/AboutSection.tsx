@@ -4,33 +4,44 @@ import type { PortfolioSettings } from '../../lib/supabase'
 interface Props { settings: PortfolioSettings | null }
 
 export default function AboutSection({ settings }: Props) {
-  if (!settings?.bio && !settings?.location) return null
+  const bio = settings?.bio
+  if (!bio && !settings?.location && !settings?.nationality) return null
 
   return (
     <section id="about" className="section about-section">
       <div className="section-inner">
-        <h2 className="section-title">About</h2>
-        <div className="about-content">
-          {settings.bio && <p className="about-bio">{settings.bio}</p>}
-          <div className="about-meta">
-            {settings.location && (
-              <span className="about-meta-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-                  <circle cx="12" cy="10" r="3" />
-                </svg>
-                {settings.location}
-              </span>
-            )}
-            {settings.website_url && (
-              <a href={settings.website_url} target="_blank" rel="noreferrer" className="about-meta-item about-meta-link">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="2" y1="12" x2="22" y2="12" />
-                  <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
-                </svg>
-                {settings.website_url.replace(/^https?:\/\//, '')}
-              </a>
+        <h2 className="section-title">About Me</h2>
+        <div className="about-grid">
+          <div className="about-bio-col">
+            {bio && <p className="about-bio">{bio}</p>}
+          </div>
+          <div className="about-info-col">
+            {[
+              settings?.location && { icon: 'map-pin', label: 'Location', value: settings.location },
+              settings?.nationality && { icon: 'flag', label: 'Nationality', value: settings.nationality },
+              settings?.phone && { icon: 'phone', label: 'Phone', value: settings.phone },
+              settings?.email && { icon: 'mail', label: 'Email', value: settings.email, href: `mailto:${settings.email}` },
+            ].filter(Boolean).map((item: any) => (
+              <div key={item.label} className="about-info-item">
+                <span className="about-info-label">{item.label}</span>
+                {item.href
+                  ? <a href={item.href} className="about-info-value about-info-link">{item.value}</a>
+                  : <span className="about-info-value">{item.value}</span>
+                }
+              </div>
+            ))}
+            {settings?.languages && settings.languages.length > 0 && (
+              <div className="about-info-item about-info-item-col">
+                <span className="about-info-label">Languages</span>
+                <div className="about-langs">
+                  {settings.languages.map((l, i) => (
+                    <div key={i} className="about-lang">
+                      <span className="about-lang-name">{l.name}</span>
+                      <span className="about-lang-level">{l.level}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         </div>
