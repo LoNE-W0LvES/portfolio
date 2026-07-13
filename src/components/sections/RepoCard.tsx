@@ -142,5 +142,4 @@ export default function RepoCard({ repo, langColors }: Props) {
   )
 }
 
-
 export default RepoCard
