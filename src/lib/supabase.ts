@@ -5,7 +5,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-export type Theme = 'light' | 'dark' | 'auto'
+export type Theme = 'light' | 'dark'
 
 export interface Skill {
   category: string
@@ -50,6 +50,7 @@ export interface PortfolioSettings {
   website_url: string
   linkedin_url: string
   twitter_url: string
+  discord_username: string
   phone: string
   whatsapp: string
   nationality: string

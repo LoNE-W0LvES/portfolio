@@ -15,10 +15,14 @@ export default function EditProfile({ settings, saving, onSave }: Props) {
     avatar_url: '',
     email: '',
     location: '',
+    nationality: '',
+    phone: '',
+    whatsapp: '',
     github_username: '',
     website_url: '',
     linkedin_url: '',
     twitter_url: '',
+    discord_username: '',
   })
 
   useEffect(() => {
@@ -30,16 +34,19 @@ export default function EditProfile({ settings, saving, onSave }: Props) {
         avatar_url: settings.avatar_url,
         email: settings.email,
         location: settings.location,
+        nationality: settings.nationality,
+        phone: settings.phone,
+        whatsapp: settings.whatsapp,
         github_username: settings.github_username,
         website_url: settings.website_url,
         linkedin_url: settings.linkedin_url,
         twitter_url: settings.twitter_url,
+        discord_username: settings.discord_username,
       })
     }
   }, [settings])
 
-  const set = (key: string, value: string) =>
-    setForm(f => ({ ...f, [key]: value }))
+  const set = (key: string, value: string) => setForm(f => ({ ...f, [key]: value }))
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -66,16 +73,32 @@ export default function EditProfile({ settings, saving, onSave }: Props) {
           <input value={form.avatar_url} onChange={e => set('avatar_url', e.target.value)} placeholder="https://..." />
         </div>
         <div className="field">
+          <label>Nationality</label>
+          <input value={form.nationality} onChange={e => set('nationality', e.target.value)} placeholder="Bangladeshi" />
+        </div>
+        <div className="field">
+          <label>Location</label>
+          <input value={form.location} onChange={e => set('location', e.target.value)} placeholder="Dhaka, Bangladesh" />
+        </div>
+        <div className="field">
           <label>Email</label>
           <input type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="you@example.com" />
         </div>
         <div className="field">
-          <label>Location</label>
-          <input value={form.location} onChange={e => set('location', e.target.value)} placeholder="City, Country" />
+          <label>Phone</label>
+          <input value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="+880..." />
+        </div>
+        <div className="field">
+          <label>WhatsApp Number</label>
+          <input value={form.whatsapp} onChange={e => set('whatsapp', e.target.value)} placeholder="+8801..." />
         </div>
         <div className="field">
           <label>GitHub Username</label>
           <input value={form.github_username} onChange={e => set('github_username', e.target.value)} placeholder="octocat" />
+        </div>
+        <div className="field">
+          <label>Discord Username</label>
+          <input value={form.discord_username} onChange={e => set('discord_username', e.target.value)} placeholder="lonewolves" />
         </div>
         <div className="field">
           <label>Website URL</label>

@@ -125,7 +125,7 @@ a.timeline-inst:hover{color:var(--accent)}
 /* ============================================================ REPOS */
 .repos-section{background:var(--bg)}
 .repos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
-.repo-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .2s,box-shadow .2s}
+.repo-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .2s,box-shadow .2s;cursor:pointer}
 .repo-card:hover,.repo-card-expanded{border-color:var(--accent)}
 .repo-card-expanded{box-shadow:0 0 0 1px var(--accent)}
 .repo-card-main{padding:20px;display:flex;flex-direction:column;gap:12px}
@@ -325,6 +325,23 @@ a.timeline-inst:hover{color:var(--accent)}
 .edit-edu-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;flex-direction:column;gap:14px}
 .edit-edu-card-header{display:flex;align-items:center;justify-content:space-between}
 .edit-edu-num{font-size:.85rem;font-weight:600;color:var(--text2)}
+
+/* REPO CHEVRON + CLICK HINT */
+.repo-chevron{color:var(--text3);transition:transform .25s;flex-shrink:0;margin-left:auto}
+.repo-chevron-open{transform:rotate(180deg);color:var(--accent)}
+.repo-click-hint{font-size:.72rem;color:var(--text3);margin-left:auto;white-space:nowrap;font-style:italic}
+
+/* ============================================================ BUG OVERLAY */
+.bug-popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;animation:fadeIn .3s ease}
+.bug-popup{background:#fff;color:#1a1a1a;border-radius:20px;padding:40px 36px;max-width:440px;width:100%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.35);animation:popIn .35s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+.bug-popup-icon{font-size:3rem;margin-bottom:16px;animation:wiggle 1s ease infinite}
+@keyframes wiggle{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+.bug-popup-title{font-size:1.5rem;font-weight:800;color:#1a1a1a;margin-bottom:12px;letter-spacing:-.02em}
+.bug-popup-body{font-size:.95rem;color:#555;line-height:1.6;margin-bottom:28px}
+.bug-popup-actions{display:flex;flex-direction:column;gap:10px}
+.bug-popup-dark-btn{padding:10px 20px;border-radius:8px;border:2px solid #1a1a1a;background:transparent;color:#1a1a1a;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s}
+.bug-popup-dark-btn:hover{background:#1a1a1a;color:#fff}
 
 /* ============================================================ RESPONSIVE */
 @media(max-width:768px){
