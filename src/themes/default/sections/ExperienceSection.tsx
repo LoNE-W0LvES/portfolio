@@ -8,7 +8,7 @@ export default function ExperienceSection({ settings }: Props) {
   if (!experience.length) return null
 
   return (
-    <section id="experience" className="section experience-section">
+    <section id="experience" className="section experience-section snap-compact">
       <div className="section-inner">
         <h2 className="section-title">Work Experience</h2>
         <div className="timeline">

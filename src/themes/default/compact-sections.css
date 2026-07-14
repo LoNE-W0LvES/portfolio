@@ -1,0 +1,31 @@
+.default-portfolio > .section:not(.hero-section) {
+  position: relative;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.default-portfolio > .section:not(.hero-section) > .section-inner {
+  position: relative;
+  z-index: 0;
+  width: 100%;
+}
+
+.default-portfolio > .section:not(.hero-section) > .section-inner::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: clamp(-88px, -8vh, -48px) -100vw;
+  background: var(--bg2);
+}
+
+@media (max-width: 720px), (max-height: 700px) {
+  .default-portfolio > .section:not(.hero-section) {
+    overflow: visible;
+  }
+
+  .default-portfolio > .section:not(.hero-section) > .section-inner::before {
+    inset: -36px -100vw;
+  }
+}

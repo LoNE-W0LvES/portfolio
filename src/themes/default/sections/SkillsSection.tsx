@@ -8,7 +8,7 @@ export default function SkillsSection({ settings }: Props) {
   if (!skills.length) return null
 
   return (
-    <section id="skills" className="section skills-section">
+    <section id="skills" className="section skills-section snap-compact">
       <div className="section-inner">
         <h2 className="section-title">Technical Skills</h2>
         <div className="skills-grid">

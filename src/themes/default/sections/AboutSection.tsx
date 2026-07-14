@@ -8,7 +8,7 @@ export default function AboutSection({ settings }: Props) {
   if (!bio && !settings?.location && !settings?.nationality) return null
 
   return (
-    <section id="about" className="section about-section">
+    <section id="about" className="section about-section snap-compact">
       <div className="section-inner">
         <h2 className="section-title">About Me</h2>
         <div className="about-grid">
@@ -49,3 +49,4 @@ export default function AboutSection({ settings }: Props) {
     </section>
   )
 }
+import '../compact-sections.css';

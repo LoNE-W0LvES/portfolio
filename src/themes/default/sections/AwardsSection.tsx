@@ -8,7 +8,7 @@ export default function AwardsSection({ settings }: Props) {
   if (!awards.length) return null
 
   return (
-    <section id="awards" className="section awards-section">
+    <section id="awards" className="section awards-section snap-compact">
       <div className="section-inner">
         <h2 className="section-title">Awards & Recognition</h2>
         <div className="awards-list">

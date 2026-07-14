@@ -8,7 +8,7 @@ export default function EducationSection({ settings }: Props) {
   if (!edu.length) return null
 
   return (
-    <section id="education" className="section education-section">
+    <section id="education" className="section education-section snap-compact">
       <div className="section-inner">
         <h2 className="section-title">Education</h2>
         <div className="timeline">
