@@ -6,6 +6,7 @@ import HeroSection from '../components/sections/HeroSection'
 import AboutSection from '../components/sections/AboutSection'
 import SkillsSection from '../components/sections/SkillsSection'
 import EducationSection from '../components/sections/EducationSection'
+import ExperienceSection from '../components/sections/ExperienceSection'
 import ReposSection from '../components/sections/ReposSection'
 import CvProjectsSection from '../components/sections/CvProjectsSection'
 import AwardsSection from '../components/sections/AwardsSection'
@@ -34,7 +35,7 @@ export default function Portfolio() {
     return <div className="portfolio-loading"><div className="spinner" /></div>
   }
 
-  const order = settings?.sections_order ?? ['hero', 'about', 'skills', 'education', 'repos', 'cv_projects', 'awards', 'contact']
+  const order = settings?.sections_order ?? ['hero', 'about', 'skills', 'experience', 'education', 'repos', 'cv_projects', 'awards', 'contact']
   const vis = settings?.sections_visible ?? {}
   const currentTheme: Theme = settings?.theme ?? 'dark'
 
@@ -43,6 +44,7 @@ export default function Portfolio() {
     about: <AboutSection key="about" settings={settings} />,
     skills: <SkillsSection key="skills" settings={settings} />,
     education: <EducationSection key="education" settings={settings} />,
+    experience: <ExperienceSection key="experience" settings={settings} />,
     repos: <ReposSection key="repos" repos={visibleRepos} loading={reposLoading} githubUsername={settings?.github_username ?? ''} />,
     cv_projects: <CvProjectsSection key="cv_projects" settings={settings} />,
     awards: <AwardsSection key="awards" settings={settings} />,

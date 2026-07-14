@@ -11,11 +11,13 @@ import EditRepos from '../components/edit/EditRepos'
 import EditSkills from '../components/edit/EditSkills'
 import EditCvProjects from '../components/edit/EditCvProjects'
 import EditEducation from '../components/edit/EditEducation'
+import EditExperience from '../components/edit/EditExperience'
+import AdminUsers from '../components/edit/AdminUsers'
 
-type Tab = 'profile' | 'sections' | 'theme' | 'repos' | 'skills' | 'projects' | 'education'
+type Tab = 'profile' | 'sections' | 'theme' | 'repos' | 'skills' | 'projects' | 'education' | 'experience' | 'users'
 
 export default function EditPage() {
-  const { isOwner, loading: authLoading, signOut } = useAuth()
+  const { isOwner, isAdmin, loading: authLoading, signOut } = useAuth()
   const { settings, repoVisibility, refresh } = usePortfolio()
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('profile')
@@ -81,8 +83,10 @@ export default function EditPage() {
     { id: 'theme', label: 'Theme' },
     { id: 'skills', label: 'Skills' },
     { id: 'education', label: 'Education' },
+    { id: 'experience', label: 'Experience' },
     { id: 'projects', label: 'Projects' },
     { id: 'repos', label: 'Repos' },
+    ...(isAdmin ? [{ id: 'users' as Tab, label: 'Users' }] : []),
   ]
 
   return (
@@ -115,6 +119,7 @@ export default function EditPage() {
         {tab === 'theme' && <EditTheme settings={settings} saving={saving} onSave={saveSettings} />}
         {tab === 'skills' && <EditSkills settings={settings} saving={saving} onSave={saveSettings} />}
         {tab === 'education' && <EditEducation settings={settings} saving={saving} onSave={saveSettings} />}
+        {tab === 'experience' && <EditExperience settings={settings} saving={saving} onSave={saveSettings} />}
         {tab === 'projects' && <EditCvProjects settings={settings} saving={saving} onSave={saveSettings} />}
         {tab === 'repos' && (
           <EditRepos
@@ -125,6 +130,7 @@ export default function EditPage() {
             githubUsername={settings?.github_username ?? ''}
           />
         )}
+        {tab === 'users' && isAdmin && <AdminUsers />}
       </main>
     </div>
   )

@@ -6,7 +6,9 @@ interface AuthContextValue {
   session: Session | null
   loading: boolean
   isOwner: boolean
+  isAdmin: boolean
   signIn: (email: string, password: string) => Promise<string | null>
+  signInWithGoogle: () => Promise<string | null>
   signOut: () => Promise<void>
 }
 
@@ -16,27 +18,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [allowedEmails, setAllowedEmails] = useState<string[]>([])
+  const [role, setRole] = useState<'admin' | 'user' | null>(null)
 
-  const fetchAllowed = async () => {
-    const { data, error } = await supabase.from('site_user_emails').select('email')
+  const fetchAllowed = async (currentEmail?: string) => {
+    const { data, error } = await supabase.from('site_user_emails').select('email, site_users(role)')
     if (error) return
     setAllowedEmails((data ?? []).map((r: any) => String(r.email).toLowerCase()))
+    const current = (data ?? []).find((r: any) => String(r.email).toLowerCase() === currentEmail?.toLowerCase()) as any
+    setRole(current?.site_users?.role === 'admin' ? 'admin' : current ? 'user' : null)
   }
 
   useEffect(() => {
     // load current session
     supabase.auth.getSession().then(async ({ data }) => {
       setSession(data.session)
-      if (data.session) await fetchAllowed()
+      if (data.session) await fetchAllowed(data.session.user.email)
       setLoading(false)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session)
       if (session) {
-        await fetchAllowed()
+        await fetchAllowed(session.user.email)
       } else {
         setAllowedEmails([])
+        setRole(null)
       }
     })
 
@@ -44,6 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const isOwner = !!(session?.user?.email && allowedEmails.includes(session.user.email.toLowerCase()))
+  const isAdmin = isOwner && role === 'admin'
 
   // signIn with password first, then enforce DB allowlist and sign out if not allowed
   const signIn = async (email: string, password: string): Promise<string | null> => {
@@ -62,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return 'Access denied.'
     }
 
-    await fetchAllowed()
+    await fetchAllowed(normalized)
     return null
   }
 
@@ -70,8 +77,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut()
   }
 
+  const signInWithGoogle = async (): Promise<string | null> => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/edit` },
+    })
+    return error?.message ?? null
+  }
+
   return (
-    <AuthContext.Provider value={{ session, loading, isOwner, signIn, signOut }}>
+    <AuthContext.Provider value={{ session, loading, isOwner, isAdmin, signIn, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   )

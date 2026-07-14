@@ -21,6 +21,15 @@ export interface Education {
   field: string
 }
 
+export interface WorkExperience {
+  role: string
+  company: string
+  period: string
+  location: string
+  url: string
+  description: string
+}
+
 export interface CvProject {
   title: string
   description: string
@@ -60,6 +69,7 @@ export interface PortfolioSettings {
   accent_color: string
   skills: Skill[]
   education: Education[]
+  work_experience: WorkExperience[]
   cv_projects: CvProject[]
   awards: Award[]
   languages: Language[]
