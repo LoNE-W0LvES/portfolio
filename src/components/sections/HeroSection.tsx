@@ -14,7 +14,7 @@ export default function HeroSection({ settings }: Props) {
       <div className="hero-inner">
         {avatar && (
           <div className="hero-avatar">
-            <img src={avatar} alt={name} onError={e => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3b82f6&color=fff&size=200` }} />
+            <img src={avatar} alt={name || 'Avatar'} onError={e => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'MD Nafiur Rahman')}&background=3b82f6&color=fff&size=200` }} />
           </div>
         )}
         <div className="hero-text">

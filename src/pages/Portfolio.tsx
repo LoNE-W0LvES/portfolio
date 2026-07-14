@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { usePortfolio } from '../context/PortfolioContext'
 import type { GitHubRepo, Theme } from '../lib/supabase'
 import HeroSection from '../components/sections/HeroSection'
+
 import AboutSection from '../components/sections/AboutSection'
 import SkillsSection from '../components/sections/SkillsSection'
 import EducationSection from '../components/sections/EducationSection'
