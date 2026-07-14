@@ -28,7 +28,7 @@ export default function EditPage() {
   const [saveMsg, setSaveMsg] = useState('')
 
   useEffect(() => {
-    if (!authLoading && (!isOwner || routeUsername?.toLowerCase() !== currentUsername)) navigate('/private-login')
+    if (!authLoading && (!isOwner || routeUsername?.toLowerCase() !== currentUsername)) navigate('/login')
   }, [authLoading, isOwner, routeUsername, currentUsername, navigate])
 
   useEffect(() => {

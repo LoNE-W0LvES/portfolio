@@ -60,7 +60,7 @@ GRANT EXECUTE ON FUNCTION public.is_site_verified() TO authenticated;
 CREATE OR REPLACE FUNCTION public.is_username_available(candidate text)
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$
  SELECT lower(candidate) ~ '^[a-z0-9_-]{3,30}$'
- AND lower(candidate) NOT IN ('edit','private-login','api','admin','login','signup','lonewolves')
+ AND lower(candidate) NOT IN ('edit','api','admin','login','signup','lonewolves')
  AND NOT EXISTS(SELECT 1 FROM site_users WHERE handle=lower(candidate));
 $$;
 GRANT EXECUTE ON FUNCTION public.is_username_available(text) TO anon,authenticated;

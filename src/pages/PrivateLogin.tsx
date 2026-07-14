@@ -17,10 +17,15 @@ export default function PrivateLogin() {
   const [username, setUsername] = useState('')
   const [notice, setNotice] = useState('')
   const [usernameState, setUsernameState] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle')
+  const [showVerificationPopup, setShowVerificationPopup] = useState(false)
 
   useEffect(() => {
     const authNotice = sessionStorage.getItem('auth_notice')
-    if (authNotice) { setNotice(authNotice); sessionStorage.removeItem('auth_notice') }
+    if (authNotice) {
+      if (authNotice.toLowerCase().includes('waiting for admin verification')) setShowVerificationPopup(true)
+      else setNotice(authNotice)
+      sessionStorage.removeItem('auth_notice')
+    }
   }, [])
 
   useEffect(() => {
@@ -68,7 +73,8 @@ export default function PrivateLogin() {
     const err = await signIn(email.trim().toLowerCase(), password)
     setLoading(false)
     if (err) {
-      setError(err)
+      if (err.toLowerCase().includes('waiting for admin verification')) setShowVerificationPopup(true)
+      else setError(err)
     }
   }
 
@@ -78,7 +84,7 @@ export default function PrivateLogin() {
     const { data, error } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
-      options: { data: { display_name: displayName.trim(), username: username.trim().toLowerCase() }, emailRedirectTo: `${window.location.origin}/private-login` },
+      options: { data: { display_name: displayName.trim(), username: username.trim().toLowerCase() }, emailRedirectTo: `${window.location.origin}/login` },
     })
     setLoading(false)
     if (error) return setError(error.message)
@@ -88,6 +94,16 @@ export default function PrivateLogin() {
 
   return (
     <div className="login-page">
+      {showVerificationPopup && (
+        <div className="verification-popup-overlay" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) setShowVerificationPopup(false) }}>
+          <div className="verification-popup" role="alertdialog" aria-modal="true" aria-labelledby="verification-popup-title">
+            <div className="verification-popup-icon" aria-hidden="true">⌛</div>
+            <h2 id="verification-popup-title">Waiting for verification</h2>
+            <p>Your account has been created, but an admin must verify it before you can sign in and edit your portfolio.</p>
+            <button type="button" className="btn-primary" onClick={() => setShowVerificationPopup(false)}>Okay</button>
+          </div>
+        </div>
+      )}
       <div className="login-card">
         <div className="login-header">
           <div className="login-logo">

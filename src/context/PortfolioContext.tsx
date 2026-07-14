@@ -27,7 +27,7 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
     const parts = location.pathname.split('/').filter(Boolean).map(part => part.toLowerCase())
     const segment = parts[0]
     const isEditRoute = parts[1] === 'edit' && segment === username
-    const isSystemRoute = !segment || ['private-login', 'api'].includes(segment)
+    const isSystemRoute = !segment || ['login', 'api'].includes(segment)
     const settingsQuery = isEditRoute && session && isOwner && siteUserId
       ? supabase.from('portfolio_settings').select('*').eq('owner_id', siteUserId).maybeSingle()
       : !isSystemRoute

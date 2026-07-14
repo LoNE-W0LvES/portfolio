@@ -46,7 +46,7 @@ export default function App() {
     <ThemeApplicator>
       <Routes>
         <Route path="/" element={<Portfolio />} />
-        <Route path="/private-login" element={<PrivateLogin />} />
+        <Route path="/login" element={<PrivateLogin />} />
         <Route path="/:username/edit" element={<EditPage />} />
         <Route path="/:username" element={<Portfolio />} />
         <Route path="/:username/" element={<Portfolio />} />

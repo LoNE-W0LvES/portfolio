@@ -56,7 +56,7 @@ export default async function handler(req: any, res: any) {
       const username = String(req.body?.username || '').trim().toLowerCase()
       if (password.length < 8) return fail(res, 400, 'Password must contain at least 8 characters.')
       if (!/^[a-z0-9_-]{3,30}$/.test(username)) return fail(res, 400, 'Username must be 3–30 lowercase letters, numbers, underscores, or hyphens.')
-      if (['edit','private-login','api','admin','login','signup','lonewolves'].includes(username)) return fail(res, 400, 'That username is reserved.')
+      if (['edit','api','admin','login','signup','lonewolves'].includes(username)) return fail(res, 400, 'That username is reserved.')
       const { data: created, error: createError } = await admin.auth.admin.createUser({ email, password, email_confirm: false, user_metadata: { display_name: displayName, username } })
       if (createError || !created.user) throw createError || new Error('Auth user was not created.')
       const { data: linked } = await admin.from('site_user_emails').select('user_id').eq('auth_user_id', created.user.id).maybeSingle()
@@ -90,7 +90,7 @@ export default async function handler(req: any, res: any) {
         if (publishError) throw publishError
       } else if (req.body?.action === 'reset') {
         const origin = `https://${req.headers.host}`
-        const { error } = await authClient.auth.resetPasswordForEmail(email, { redirectTo: `${origin}/private-login` })
+        const { error } = await authClient.auth.resetPasswordForEmail(email, { redirectTo: `${origin}/login` })
         if (error) throw error
       } else return fail(res, 400, 'Unknown action.')
       return res.status(200).json({ success: true })
