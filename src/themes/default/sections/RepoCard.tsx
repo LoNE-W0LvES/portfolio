@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import type { GitHubRepo } from '../../lib/supabase'
+import type { GitHubRepo } from '../../../lib/supabase'
 
 interface Props {
   repo: GitHubRepo

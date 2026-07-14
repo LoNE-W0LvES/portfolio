@@ -1,5 +1,5 @@
 import React from 'react'
-import type { PortfolioSettings } from '../../lib/supabase'
+import type { PortfolioSettings } from '../../../lib/supabase'
 
 interface Props { settings: PortfolioSettings | null }
 

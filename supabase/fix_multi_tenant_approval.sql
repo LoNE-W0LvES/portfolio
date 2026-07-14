@@ -9,6 +9,9 @@ ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS owner_id uuid;
 ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS is_primary boolean NOT NULL DEFAULT false;
 ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS slug text;
 ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS is_published boolean NOT NULL DEFAULT false;
+ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS viewer_theme text NOT NULL DEFAULT 'default';
+ALTER TABLE public.portfolio_settings DROP CONSTRAINT IF EXISTS portfolio_settings_viewer_theme_check;
+ALTER TABLE public.portfolio_settings ADD CONSTRAINT portfolio_settings_viewer_theme_check CHECK(viewer_theme IN ('default','kinetic'));
 ALTER TABLE public.repo_visibility ADD COLUMN IF NOT EXISTS owner_id uuid;
 
 UPDATE public.site_users SET handle='lonewolves', username_set=true WHERE role='admin';
@@ -20,6 +23,7 @@ UPDATE public.site_users u SET
   END
 FROM public.site_user_emails e JOIN auth.users a ON a.id=e.auth_user_id
 WHERE e.user_id=u.id AND u.role='user';
+UPDATE public.site_users SET status='pending' WHERE role='user' AND username_set=false;
 ALTER TABLE public.site_users DROP CONSTRAINT IF EXISTS site_users_handle_key;
 ALTER TABLE public.site_users ADD CONSTRAINT site_users_handle_key UNIQUE(handle);
 
@@ -40,6 +44,8 @@ ALTER TABLE public.portfolio_settings DROP CONSTRAINT IF EXISTS portfolio_settin
 ALTER TABLE public.portfolio_settings ADD CONSTRAINT portfolio_settings_owner_id_key UNIQUE(owner_id);
 UPDATE public.portfolio_settings p SET slug=CASE WHEN u.username_set THEN lower(u.handle) ELSE NULL END
 FROM public.site_users u WHERE p.owner_id=u.id;
+UPDATE public.portfolio_settings p SET is_published=false
+FROM public.site_users u WHERE p.owner_id=u.id AND u.username_set=false;
 ALTER TABLE public.portfolio_settings DROP CONSTRAINT IF EXISTS portfolio_settings_slug_key;
 ALTER TABLE public.portfolio_settings ADD CONSTRAINT portfolio_settings_slug_key UNIQUE(slug);
 ALTER TABLE public.portfolio_settings DROP CONSTRAINT IF EXISTS portfolio_settings_owner_id_fkey;
@@ -50,10 +56,26 @@ ALTER TABLE public.repo_visibility ADD CONSTRAINT repo_visibility_owner_repo_key
 ALTER TABLE public.repo_visibility DROP CONSTRAINT IF EXISTS repo_visibility_owner_id_fkey;
 ALTER TABLE public.repo_visibility ADD CONSTRAINT repo_visibility_owner_id_fkey FOREIGN KEY(owner_id) REFERENCES public.site_users(id) ON DELETE CASCADE;
 
+CREATE OR REPLACE FUNCTION public.current_site_user_id()
+RETURNS uuid LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$
+ SELECT user_id FROM site_user_emails
+ WHERE auth_user_id=auth.uid() OR lower(email)=lower(auth.jwt()->>'email')
+ ORDER BY (auth_user_id=auth.uid()) DESC LIMIT 1;
+$$;
+
+CREATE OR REPLACE FUNCTION public.is_site_admin()
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$
+ SELECT EXISTS(SELECT 1 FROM site_user_emails e JOIN site_users u ON u.id=e.user_id
+ WHERE (e.auth_user_id=auth.uid() OR lower(e.email)=lower(auth.jwt()->>'email')) AND u.role='admin');
+$$;
+
+GRANT EXECUTE ON FUNCTION public.current_site_user_id() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_site_admin() TO authenticated;
+
 CREATE OR REPLACE FUNCTION public.is_site_verified()
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$
  SELECT EXISTS(SELECT 1 FROM site_user_emails e JOIN site_users u ON u.id=e.user_id
- WHERE lower(e.email)=lower(auth.jwt()->>'email') AND u.status='verified');
+ WHERE (e.auth_user_id=auth.uid() OR lower(e.email)=lower(auth.jwt()->>'email')) AND u.status='verified');
 $$;
 GRANT EXECUTE ON FUNCTION public.is_site_verified() TO authenticated;
 
@@ -70,7 +92,9 @@ RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 DECLARE uid uuid;
 BEGIN
  IF NOT public.is_username_available(candidate) THEN RAISE EXCEPTION 'Username is unavailable or reserved'; END IF;
- SELECT e.user_id INTO uid FROM site_user_emails e WHERE lower(e.email)=lower(auth.jwt()->>'email') LIMIT 1;
+ SELECT e.user_id INTO uid FROM site_user_emails e
+ WHERE e.auth_user_id=auth.uid() OR lower(e.email)=lower(auth.jwt()->>'email')
+ ORDER BY (e.auth_user_id=auth.uid()) DESC LIMIT 1;
  IF uid IS NULL THEN RAISE EXCEPTION 'Managed account not found'; END IF;
  IF (SELECT username_set FROM site_users WHERE id=uid) THEN RAISE EXCEPTION 'Username has already been set'; END IF;
  UPDATE site_users SET handle=lower(candidate),username_set=true WHERE id=uid;

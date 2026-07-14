@@ -6,6 +6,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export type Theme = 'light' | 'dark'
+export type ViewerTheme = 'default' | 'kinetic'
 
 export interface Skill {
   category: string
@@ -57,6 +58,7 @@ export interface PortfolioSettings {
   display_name: string
   title: string
   bio: string
+  about_text: string
   avatar_url: string
   email: string
   location: string
@@ -70,6 +72,7 @@ export interface PortfolioSettings {
   sections_order: string[]
   sections_visible: Record<string, boolean>
   theme: Theme
+  viewer_theme: ViewerTheme
   accent_color: string
   skills: Skill[]
   education: Education[]

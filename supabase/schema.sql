@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS portfolio_settings (
   sections_order jsonb NOT NULL DEFAULT '["hero","about","skills","experience","education","repos","cv_projects","awards","contact"]'::jsonb,
   sections_visible jsonb NOT NULL DEFAULT '{"hero":true,"about":true,"skills":true,"experience":true,"education":true,"repos":true,"cv_projects":true,"awards":true,"contact":true}'::jsonb,
   theme text NOT NULL DEFAULT 'dark',
+  viewer_theme text NOT NULL DEFAULT 'default' CHECK (viewer_theme IN ('default','kinetic')),
   accent_color text NOT NULL DEFAULT '#3b82f6',
   phone text NOT NULL DEFAULT '',
   whatsapp text NOT NULL DEFAULT '',
@@ -116,21 +117,22 @@ CREATE OR REPLACE FUNCTION public.is_site_admin()
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT EXISTS (
     SELECT 1 FROM site_user_emails e JOIN site_users u ON u.id = e.user_id
-    WHERE lower(e.email) = lower(auth.jwt() ->> 'email') AND u.role = 'admin'
+    WHERE (e.auth_user_id = auth.uid() OR lower(e.email) = lower(auth.jwt() ->> 'email')) AND u.role = 'admin'
   );
 $$;
 
 CREATE OR REPLACE FUNCTION public.current_site_user_id()
 RETURNS uuid LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT user_id FROM site_user_emails
-  WHERE lower(email) = lower(auth.jwt() ->> 'email') LIMIT 1;
+  WHERE auth_user_id = auth.uid() OR lower(email) = lower(auth.jwt() ->> 'email')
+  ORDER BY (auth_user_id = auth.uid()) DESC LIMIT 1;
 $$;
 
 CREATE OR REPLACE FUNCTION public.is_site_verified()
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT EXISTS (
     SELECT 1 FROM site_user_emails e JOIN site_users u ON u.id=e.user_id
-    WHERE lower(e.email)=lower(auth.jwt()->>'email') AND u.status='verified'
+    WHERE (e.auth_user_id=auth.uid() OR lower(e.email)=lower(auth.jwt()->>'email')) AND u.status='verified'
   );
 $$;
 
@@ -152,7 +154,8 @@ DECLARE uid uuid;
 BEGIN
   IF NOT public.is_username_available(candidate) THEN RAISE EXCEPTION 'Username is unavailable or reserved'; END IF;
   SELECT e.user_id INTO uid FROM site_user_emails e
-  WHERE lower(e.email)=lower(auth.jwt()->>'email') LIMIT 1;
+  WHERE e.auth_user_id=auth.uid() OR lower(e.email)=lower(auth.jwt()->>'email')
+  ORDER BY (e.auth_user_id=auth.uid()) DESC LIMIT 1;
   IF uid IS NULL THEN RAISE EXCEPTION 'Managed account not found'; END IF;
   IF (SELECT username_set FROM site_users WHERE id=uid) THEN RAISE EXCEPTION 'Username has already been set'; END IF;
   UPDATE site_users SET handle=lower(candidate), username_set=true WHERE id=uid;
