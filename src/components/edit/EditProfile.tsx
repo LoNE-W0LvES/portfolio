@@ -1,5 +1,29 @@
 import React, { useEffect, useState } from 'react'
-import type { PortfolioSettings } from '../../lib/supabase'
+import { supabase, type PortfolioSettings } from '../../lib/supabase'
+
+const AVATAR_BUCKET = 'avatars'
+const MAX_AVATAR_SIZE = 5 * 1024 * 1024
+const ALLOWED_AVATAR_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+
+interface StoredAvatar {
+  path: string
+  name: string
+  url: string
+  created_at: string | null
+}
+
+function getAvatarPathFromUrl(url: string): string | null {
+  if (!url) return null
+  try {
+    const parsed = new URL(url)
+    const marker = `/storage/v1/object/public/${AVATAR_BUCKET}/`
+    const idx = parsed.pathname.indexOf(marker)
+    if (idx === -1) return null
+    return decodeURIComponent(parsed.pathname.slice(idx + marker.length))
+  } catch {
+    return null
+  }
+}
 
 interface Props {
   settings: PortfolioSettings | null
@@ -24,6 +48,10 @@ export default function EditProfile({ settings, saving, onSave }: Props) {
     twitter_url: '',
     discord_username: '',
   })
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [avatarsLoading, setAvatarsLoading] = useState(false)
+  const [avatarMsg, setAvatarMsg] = useState('')
+  const [storedAvatars, setStoredAvatars] = useState<StoredAvatar[]>([])
 
   useEffect(() => {
     if (settings) {
@@ -46,7 +74,110 @@ export default function EditProfile({ settings, saving, onSave }: Props) {
     }
   }, [settings])
 
+  const loadStoredAvatars = async () => {
+    setAvatarsLoading(true)
+    const { data, error } = await supabase
+      .storage
+      .from(AVATAR_BUCKET)
+      .list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } })
+
+    if (error) {
+      setAvatarMsg(`Failed to load uploaded images: ${error.message}`)
+      setStoredAvatars([])
+      setAvatarsLoading(false)
+      return
+    }
+
+    const rows = (data ?? [])
+      .filter(file => !!file.name && !file.name.endsWith('/'))
+      .map(file => {
+        const publicUrl = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(file.name).data.publicUrl
+        return {
+          path: file.name,
+          name: file.name,
+          created_at: file.created_at ?? null,
+          url: publicUrl,
+        }
+      })
+
+    setStoredAvatars(rows)
+    setAvatarsLoading(false)
+  }
+
+  useEffect(() => {
+    loadStoredAvatars()
+  }, [])
+
   const set = (key: string, value: string) => setForm(f => ({ ...f, [key]: value }))
+
+  const handleAvatarUpload: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!ALLOWED_AVATAR_TYPES.has(file.type)) {
+      setAvatarMsg('Choose a JPG, PNG, WebP, or GIF image.')
+      e.target.value = ''
+      return
+    }
+    if (file.size > MAX_AVATAR_SIZE) {
+      setAvatarMsg('The image must be 5 MB or smaller.')
+      e.target.value = ''
+      return
+    }
+
+    setUploadingAvatar(true)
+    setAvatarMsg('')
+
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
+    const baseName = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9-_]/g, '-').slice(0, 40) || 'avatar'
+    const path = `${Date.now()}-${baseName}.${ext}`
+
+    const { error } = await supabase.storage.from(AVATAR_BUCKET).upload(path, file, {
+      cacheControl: '3600',
+      contentType: file.type,
+      upsert: false,
+    })
+
+    if (error) {
+      setAvatarMsg(`Upload failed: ${error.message}`)
+      setUploadingAvatar(false)
+      e.target.value = ''
+      return
+    }
+
+    const publicUrl = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path).data.publicUrl
+    set('avatar_url', publicUrl)
+    await onSave({ avatar_url: publicUrl })
+    setAvatarMsg('Avatar uploaded and selected.')
+    await loadStoredAvatars()
+    setUploadingAvatar(false)
+    e.target.value = ''
+  }
+
+  const handleUseAvatar = async (url: string) => {
+    setAvatarMsg('')
+    set('avatar_url', url)
+    await onSave({ avatar_url: url })
+    setAvatarMsg('Avatar updated.')
+  }
+
+  const handleDeleteAvatar = async (path: string) => {
+    if (!window.confirm('Permanently delete this uploaded image?')) return
+    setAvatarMsg('')
+    const { error } = await supabase.storage.from(AVATAR_BUCKET).remove([path])
+    if (error) {
+      setAvatarMsg(`Delete failed: ${error.message}`)
+      return
+    }
+
+    const currentPath = getAvatarPathFromUrl(form.avatar_url)
+    if (currentPath === path) {
+      set('avatar_url', '')
+      await onSave({ avatar_url: '' })
+    }
+    await loadStoredAvatars()
+    setAvatarMsg('Image deleted.')
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,6 +202,55 @@ export default function EditProfile({ settings, saving, onSave }: Props) {
         <div className="field">
           <label>Avatar URL</label>
           <input value={form.avatar_url} onChange={e => set('avatar_url', e.target.value)} placeholder="https://..." />
+        </div>
+        <div className="field field-full avatar-manager">
+          <label>Avatar Upload & Management</label>
+          <div className="avatar-upload-row">
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              onChange={handleAvatarUpload}
+              disabled={uploadingAvatar || saving}
+            />
+            {uploadingAvatar && <span className="avatar-uploading-text">Uploading...</span>}
+          </div>
+          <p className="avatar-help">JPG, PNG, WebP, or GIF. Maximum size: 5 MB.</p>
+          {avatarMsg && <p className="avatar-msg">{avatarMsg}</p>}
+
+          <div className="avatar-current">
+            <span>Current:</span>
+            {form.avatar_url ? (
+              <img src={form.avatar_url} alt="Current avatar" className="avatar-thumb" />
+            ) : (
+              <span className="avatar-empty">No avatar selected</span>
+            )}
+          </div>
+
+          <div className="avatar-gallery">
+            {avatarsLoading && <p className="avatar-empty">Loading uploaded images...</p>}
+            {!avatarsLoading && storedAvatars.length === 0 && <p className="avatar-empty">No uploaded images yet.</p>}
+            {!avatarsLoading && storedAvatars.length > 0 && (
+              <div className="avatar-grid">
+                {storedAvatars.map(item => {
+                  const isActive = form.avatar_url === item.url
+                  return (
+                    <div key={item.path} className={`avatar-card ${isActive ? 'active' : ''}`}>
+                      <img src={item.url} alt={item.name} className="avatar-thumb" />
+                      <p className="avatar-name" title={item.name}>{item.name}</p>
+                      <div className="avatar-actions">
+                        <button type="button" className="btn-primary" disabled={saving || isActive} onClick={() => handleUseAvatar(item.url)}>
+                          {isActive ? 'Selected' : 'Use'}
+                        </button>
+                        <button type="button" className="repo-toggle-btn hidden" disabled={saving} onClick={() => handleDeleteAvatar(item.path)}>
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         </div>
         <div className="field">
           <label>Nationality</label>

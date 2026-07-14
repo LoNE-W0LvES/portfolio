@@ -18,10 +18,12 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   const fetchData = async () => {
-    const [{ data: s }, { data: v }] = await Promise.all([
+    const [{ data: s, error: settingsError }, { data: v, error: visibilityError }] = await Promise.all([
       supabase.from('portfolio_settings').select('*').eq('id', 1).maybeSingle(),
       supabase.from('repo_visibility').select('*'),
     ])
+    if (settingsError) console.error('Failed to load portfolio settings:', settingsError.message)
+    if (visibilityError) console.error('Failed to load repository visibility:', visibilityError.message)
     setSettings(s)
     setRepoVisibility(v ?? [])
     setLoading(false)

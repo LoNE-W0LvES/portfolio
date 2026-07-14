@@ -40,17 +40,25 @@ export default function EditPage() {
   const saveSettings = async (updates: Partial<PortfolioSettings>) => {
     setSaving(true)
     setSaveMsg('')
-    const { error } = await supabase
-      .from('portfolio_settings')
-      .update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('id', 1)
-    setSaving(false)
-    if (error) {
-      setSaveMsg('Error: ' + error.message)
-    } else {
+    try {
+      const { data, error } = await supabase
+        .from('portfolio_settings')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', 1)
+        .select('id')
+        .maybeSingle()
+
+      if (error) throw error
+      if (!data) throw new Error('Database update was blocked. Check the portfolio_settings UPDATE policy for your logged-in user.')
+
       setSaveMsg('Saved!')
       await refresh()
       setTimeout(() => setSaveMsg(''), 2500)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown database error'
+      setSaveMsg('Error: ' + message)
+    } finally {
+      setSaving(false)
     }
   }
 

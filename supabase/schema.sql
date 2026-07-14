@@ -169,6 +169,54 @@ DROP POLICY IF EXISTS "auth_delete_site_user_emails" ON site_user_emails;
 CREATE POLICY "auth_delete_site_user_emails" ON site_user_emails FOR DELETE
   TO authenticated USING (true);
 
+-- Public avatar bucket. Only authenticated emails in the site's allowlist may
+-- list, upload, or delete objects; visitors can display files via public URLs.
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'avatars',
+  'avatars',
+  true,
+  5242880,
+  ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+)
+ON CONFLICT (id) DO UPDATE SET
+  public = EXCLUDED.public,
+  file_size_limit = EXCLUDED.file_size_limit,
+  allowed_mime_types = EXCLUDED.allowed_mime_types;
+
+DROP POLICY IF EXISTS "owner_select_avatars" ON storage.objects;
+CREATE POLICY "owner_select_avatars" ON storage.objects FOR SELECT
+  TO authenticated
+  USING (
+    bucket_id = 'avatars'
+    AND EXISTS (
+      SELECT 1 FROM public.site_user_emails
+      WHERE lower(email) = lower(auth.jwt() ->> 'email')
+    )
+  );
+
+DROP POLICY IF EXISTS "owner_insert_avatars" ON storage.objects;
+CREATE POLICY "owner_insert_avatars" ON storage.objects FOR INSERT
+  TO authenticated
+  WITH CHECK (
+    bucket_id = 'avatars'
+    AND EXISTS (
+      SELECT 1 FROM public.site_user_emails
+      WHERE lower(email) = lower(auth.jwt() ->> 'email')
+    )
+  );
+
+DROP POLICY IF EXISTS "owner_delete_avatars" ON storage.objects;
+CREATE POLICY "owner_delete_avatars" ON storage.objects FOR DELETE
+  TO authenticated
+  USING (
+    bucket_id = 'avatars'
+    AND EXISTS (
+      SELECT 1 FROM public.site_user_emails
+      WHERE lower(email) = lower(auth.jwt() ->> 'email')
+    )
+  );
+
 -- Notes:
 -- 1) This schema separates logical users (site_users) from emails (site_user_emails)
 --    so a single account can hold multiple emails for redundancy as requested.
