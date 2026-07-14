@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import './BugOverlay.css'
 
 interface Bug {
   id: number
@@ -11,9 +12,28 @@ interface Bug {
   size: number
   phase: number
   wingFlap: number
+  dead: boolean
+}
+
+interface Food {
+  id: number
+  x: number
+  y: number
+  icon: string
 }
 
 const BUG_COUNT = 18
+const FOOD_COUNT = 5
+
+function makeFood(id: number): Food {
+  const icons = ['🍪', '🍕', '🍎', '🧀', '🍩']
+  return {
+    id,
+    x: 70 + Math.random() * Math.max(100, window.innerWidth - 140),
+    y: 90 + Math.random() * Math.max(100, window.innerHeight - 180),
+    icon: icons[id % icons.length],
+  }
+}
 
 function makeBug(id: number): Bug {
   const types: Bug['type'][] = ['fly', 'ant', 'moth', 'beetle']
@@ -28,6 +48,7 @@ function makeBug(id: number): Bug {
     size: 14 + Math.random() * 12,
     phase: Math.random() * Math.PI * 2,
     wingFlap: 0,
+    dead: false,
   }
 }
 
@@ -66,8 +87,25 @@ function BugSvg({ type, size, wingFlap }: { type: Bug['type']; size: number; win
 
 export default function BugOverlay({ onKeepLight, onSwitchDark }: { onKeepLight?: () => void; onSwitchDark?: () => void }) {
   const [bugs, setBugs] = useState<Bug[]>(() => Array.from({ length: BUG_COUNT }, (_, i) => makeBug(i)))
+  const [food, setFood] = useState<Food[]>(() => Array.from({ length: FOOD_COUNT }, (_, i) => makeFood(i)))
   const [showPopup, setShowPopup] = useState(false)
   const frameRef = useRef<number>(0)
+  const nextBugIdRef = useRef(BUG_COUNT)
+  const foodRef = useRef(food)
+  const draggingFoodRef = useRef<number | null>(null)
+
+  useEffect(() => { foodRef.current = food }, [food])
+
+  useEffect(() => {
+    const spawner = window.setInterval(() => {
+      setBugs(current => {
+        const livingCount = current.filter(bug => !bug.dead).length
+        if (livingCount >= BUG_COUNT) return current
+        return [...current, makeBug(nextBugIdRef.current++)]
+      })
+    }, 5000)
+    return () => window.clearInterval(spawner)
+  }, [])
 
   useEffect(() => {
     const timer = setTimeout(() => setShowPopup(true), 1600)
@@ -79,16 +117,23 @@ export default function BugOverlay({ onKeepLight, onSwitchDark }: { onKeepLight?
     const animate = () => {
       t += 0.05
       setBugs(prev => prev.map(bug => {
+        if (bug.dead) return bug
         let { x, y, vx, vy, angle, phase, wingFlap } = bug
+        const nearestFood = foodRef.current.reduce<Food | null>((nearest, item) => {
+          if (!nearest) return item
+          const itemDistance = (item.x - x) ** 2 + (item.y - y) ** 2
+          const nearestDistance = (nearest.x - x) ** 2 + (nearest.y - y) ** 2
+          return itemDistance < nearestDistance ? item : nearest
+        }, null)
+        const targetX = nearestFood?.x ?? window.innerWidth / 2
+        const targetY = nearestFood?.y ?? window.innerHeight / 2
+        const dx = targetX - x
+        const dy = targetY - y
+        const dist = Math.max(1, Math.sqrt(dx * dx + dy * dy))
         if (bug.type === 'fly' || bug.type === 'moth') {
-          const cx = window.innerWidth / 2
-          const cy = window.innerHeight / 2
-          const dx = cx - x
-          const dy = cy - y
-          const dist = Math.sqrt(dx * dx + dy * dy)
-          if (dist > 80) {
-            vx += (dx / dist) * 0.12 + (Math.random() - 0.5) * 0.4
-            vy += (dy / dist) * 0.12 + (Math.random() - 0.5) * 0.4
+          if (dist > 38) {
+            vx += (dx / dist) * 0.16 + (Math.random() - 0.5) * 0.34
+            vy += (dy / dist) * 0.16 + (Math.random() - 0.5) * 0.34
           } else {
             vx += (Math.random() - 0.5) * 0.8
             vy += (Math.random() - 0.5) * 0.8
@@ -97,8 +142,8 @@ export default function BugOverlay({ onKeepLight, onSwitchDark }: { onKeepLight?
           if (speed > 3.5) { vx = (vx / speed) * 3.5; vy = (vy / speed) * 3.5 }
           wingFlap = (t * 8 + phase) % 4
         } else {
-          vx += (Math.random() - 0.5) * 0.3
-          vy += (Math.random() - 0.5) * 0.3
+          vx += (dx / dist) * 0.075 + (Math.random() - 0.5) * 0.22
+          vy += (dy / dist) * 0.075 + (Math.random() - 0.5) * 0.22
           const speed = Math.sqrt(vx * vx + vy * vy)
           if (speed > 1.4) { vx = (vx / speed) * 1.4; vy = (vy / speed) * 1.4 }
           wingFlap = 0
@@ -118,13 +163,43 @@ export default function BugOverlay({ onKeepLight, onSwitchDark }: { onKeepLight?
     return () => cancelAnimationFrame(frameRef.current)
   }, [])
 
+  const moveFood = (event: React.PointerEvent<HTMLButtonElement>, id: number) => {
+    if (draggingFoodRef.current !== id) return
+    setFood(current => current.map(item => item.id === id ? {
+      ...item,
+      x: Math.max(28, Math.min(window.innerWidth - 28, event.clientX)),
+      y: Math.max(28, Math.min(window.innerHeight - 28, event.clientY)),
+    } : item))
+  }
+
+  const stopDraggingFood = (event: React.PointerEvent<HTMLButtonElement>) => {
+    draggingFoodRef.current = null
+    event.currentTarget.releasePointerCapture?.(event.pointerId)
+  }
+
   return (
     <>
       <div style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9990, overflow: 'hidden' }}>
+        {food.map(item => (
+          <button
+            key={`food-${item.id}`}
+            type="button"
+            aria-label={`Drag food ${item.icon}`}
+            title="Drag me — the bugs will follow"
+            onPointerDown={event => { draggingFoodRef.current = item.id; event.currentTarget.setPointerCapture(event.pointerId) }}
+            onPointerMove={event => moveFood(event, item.id)}
+            onPointerUp={stopDraggingFood}
+            onPointerCancel={stopDraggingFood}
+            style={{ position: 'absolute', zIndex: 2, left: item.x, top: item.y, transform: 'translate(-50%,-50%)', pointerEvents: 'auto', touchAction: 'none', cursor: 'grab', border: 0, padding: 7, borderRadius: '50%', background: 'rgba(255,255,255,.78)', boxShadow: '0 3px 14px rgba(0,0,0,.2)', fontSize: 24, lineHeight: 1 }}
+          >
+            {item.icon}
+          </button>
+        ))}
         {bugs.map(bug => (
-          <div key={bug.id} style={{ position: 'absolute', left: bug.x, top: bug.y, transform: `translate(-50%,-50%) rotate(${bug.angle}deg)`, opacity: 0.88 }}>
+          <button type="button" aria-label={`${bug.dead ? 'Squashed' : 'Squash'} ${bug.type}`} title={bug.dead ? 'Squashed bug' : 'Click to squash'} disabled={bug.dead} onClick={() => setBugs(current => current.map(item => item.id === bug.id ? { ...item, dead: true, vx: 0, vy: 0 } : item))} key={bug.id} className={`bug-creature ${bug.dead ? 'bug-creature-dead' : ''}`} style={{ position: 'absolute', zIndex: 1, left: bug.x, top: bug.y, '--bug-angle': `${bug.angle}deg` } as React.CSSProperties}>
+            {bug.dead && <span className="bug-blood" aria-hidden="true" />}
             <BugSvg type={bug.type} size={bug.size} wingFlap={bug.wingFlap} />
-          </div>
+          </button>
         ))}
       </div>
 
