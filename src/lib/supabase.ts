@@ -49,6 +49,10 @@ export interface Language {
 
 export interface PortfolioSettings {
   id: number
+  owner_id: string
+  is_primary: boolean
+  slug: string
+  is_published: boolean
   github_username: string
   display_name: string
   title: string
@@ -80,6 +84,7 @@ export interface PortfolioSettings {
 
 export interface RepoVisibility {
   id: string
+  owner_id: string
   repo_name: string
   visible: boolean
 }

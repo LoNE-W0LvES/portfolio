@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 
 export default function PrivateLogin() {
-  const { signIn, signInWithGoogle } = useAuth()
+  const { signIn, signInWithGoogle, session, isOwner, username: currentUsername, needsUsername } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -14,7 +14,37 @@ export default function PrivateLogin() {
   const [newPassword, setNewPassword] = useState('')
   const [creatingAccount, setCreatingAccount] = useState(false)
   const [displayName, setDisplayName] = useState('')
+  const [username, setUsername] = useState('')
   const [notice, setNotice] = useState('')
+  const [usernameState, setUsernameState] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle')
+
+  useEffect(() => {
+    const authNotice = sessionStorage.getItem('auth_notice')
+    if (authNotice) { setNotice(authNotice); sessionStorage.removeItem('auth_notice') }
+  }, [])
+
+  useEffect(() => {
+    if (session && isOwner && currentUsername) navigate(`/${currentUsername}/edit`, { replace: true })
+  }, [session, isOwner, currentUsername, navigate])
+
+  const checkUsername = async (value = username) => {
+    if (!/^[a-z0-9_-]{3,30}$/.test(value)) { setUsernameState('idle'); return false }
+    setUsernameState('checking')
+    const { data, error } = await supabase.rpc('is_username_available', { candidate: value })
+    const available = !error && data === true
+    setUsernameState(available ? 'available' : 'taken')
+    return available
+  }
+
+  const completeGoogleUsername = async (e: React.FormEvent) => {
+    e.preventDefault(); setLoading(true); setError('')
+    if (!(await checkUsername())) { setLoading(false); setError('That username is unavailable or reserved.'); return }
+    const { error } = await supabase.rpc('complete_username', { candidate: username })
+    if (error) { setLoading(false); setError(error.message); return }
+    sessionStorage.setItem('auth_notice', 'Username saved. Your account is waiting for admin verification.')
+    await supabase.auth.signOut()
+    window.location.reload()
+  }
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(event => {
@@ -39,22 +69,21 @@ export default function PrivateLogin() {
     setLoading(false)
     if (err) {
       setError(err)
-    } else {
-      navigate('/edit')
     }
   }
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault(); setError(''); setNotice(''); setLoading(true)
+    if (!(await checkUsername())) { setLoading(false); setError('That username is unavailable or reserved.'); return }
     const { data, error } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
-      options: { data: { display_name: displayName.trim() }, emailRedirectTo: `${window.location.origin}/private-login` },
+      options: { data: { display_name: displayName.trim(), username: username.trim().toLowerCase() }, emailRedirectTo: `${window.location.origin}/private-login` },
     })
     setLoading(false)
     if (error) return setError(error.message)
-    if (data.session) navigate('/edit')
-    else { setNotice('Account created. Check your email for the verification link.'); setCreatingAccount(false); setPassword('') }
+    if (data.session) await supabase.auth.signOut()
+    setNotice('Account created. An admin must verify it before you can sign in.'); setCreatingAccount(false); setPassword('')
   }
 
   return (
@@ -71,7 +100,14 @@ export default function PrivateLogin() {
           <p>Sign in to manage your portfolio</p>
         </div>
 
-        {recovering ? (
+        {needsUsername ? (
+          <form onSubmit={completeGoogleUsername} className="login-form">
+            <p className="edit-hint">Choose your portfolio username to finish creating your Google account.</p>
+            <div className="field"><label htmlFor="google-username">Username</label><input id="google-username" value={username} onChange={e => { setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '')); setUsernameState('idle') }} onBlur={() => checkUsername()} minLength={3} maxLength={30} pattern="[a-z0-9_-]+" required autoFocus /><span className={`field-help username-${usernameState}`}>{usernameState === 'checking' ? 'Checking…' : usernameState === 'available' ? 'Username available' : usernameState === 'taken' ? 'Username unavailable' : `Your portfolio: /${username || 'username'}/`}</span></div>
+            {error && <div className="login-error">{error}</div>}
+            <button type="submit" className="btn-primary" disabled={loading || username.length < 3}>{loading ? <span className="btn-spinner" /> : 'Save Username'}</button>
+          </form>
+        ) : recovering ? (
           <form onSubmit={updatePassword} className="login-form">
             <div className="field"><label htmlFor="new-password">New Password</label><input id="new-password" type="password" minLength={8} value={newPassword} onChange={e => setNewPassword(e.target.value)} required autoComplete="new-password" /></div>
             {error && <div className="login-error">{error}</div>}
@@ -79,7 +115,10 @@ export default function PrivateLogin() {
           </form>
         ) : <>
         <form onSubmit={creatingAccount ? handleSignUp : handleSubmit} className="login-form">
-          {creatingAccount && <div className="field"><label htmlFor="display-name">Name</label><input id="display-name" value={displayName} onChange={e => setDisplayName(e.target.value)} autoComplete="name" required /></div>}
+          {creatingAccount && <>
+            <div className="field"><label htmlFor="display-name">Name</label><input id="display-name" value={displayName} onChange={e => setDisplayName(e.target.value)} autoComplete="name" required /></div>
+            <div className="field"><label htmlFor="username">Username</label><input id="username" value={username} onChange={e => { setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, '')); setUsernameState('idle') }} onBlur={() => checkUsername()} minLength={3} maxLength={30} pattern="[a-z0-9_-]+" autoComplete="username" placeholder="anas" required /><span className={`field-help username-${usernameState}`}>{usernameState === 'checking' ? 'Checking…' : usernameState === 'available' ? 'Username available' : usernameState === 'taken' ? 'Username unavailable' : `Your portfolio: /${username || 'username'}/`}</span></div>
+          </>}
           <div className="field">
             <label htmlFor="email">Email</label>
             <input

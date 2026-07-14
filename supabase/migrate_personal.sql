@@ -1,4 +1,0 @@
--- Deprecated combined migration.
--- Use the split files instead:
--- 1) add_user.sql
--- 2) seed_personal_data.sql

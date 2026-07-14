@@ -47,7 +47,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Portfolio />} />
         <Route path="/private-login" element={<PrivateLogin />} />
-        <Route path="/edit" element={<EditPage />} />
+        <Route path="/:username/edit" element={<EditPage />} />
+        <Route path="/:username" element={<Portfolio />} />
+        <Route path="/:username/" element={<Portfolio />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </ThemeApplicator>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { usePortfolio } from '../context/PortfolioContext'
 import { supabase } from '../lib/supabase'
@@ -17,7 +17,8 @@ import AdminUsers from '../components/edit/AdminUsers'
 type Tab = 'profile' | 'sections' | 'theme' | 'repos' | 'skills' | 'projects' | 'education' | 'experience' | 'users'
 
 export default function EditPage() {
-  const { isOwner, isAdmin, loading: authLoading, signOut } = useAuth()
+  const { isOwner, isAdmin, username: currentUsername, loading: authLoading, signOut } = useAuth()
+  const { username: routeUsername } = useParams()
   const { settings, repoVisibility, refresh } = usePortfolio()
   const navigate = useNavigate()
   const [tab, setTab] = useState<Tab>('profile')
@@ -27,8 +28,8 @@ export default function EditPage() {
   const [saveMsg, setSaveMsg] = useState('')
 
   useEffect(() => {
-    if (!authLoading && !isOwner) navigate('/private-login')
-  }, [authLoading, isOwner, navigate])
+    if (!authLoading && (!isOwner || routeUsername?.toLowerCase() !== currentUsername)) navigate('/private-login')
+  }, [authLoading, isOwner, routeUsername, currentUsername, navigate])
 
   useEffect(() => {
     if (!settings?.github_username) return
@@ -45,8 +46,8 @@ export default function EditPage() {
     try {
       const { data, error } = await supabase
         .from('portfolio_settings')
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', 1)
+      .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', settings?.id ?? -1)
         .select('id')
         .maybeSingle()
 
@@ -69,7 +70,7 @@ export default function EditPage() {
     if (existing) {
       await supabase.from('repo_visibility').update({ visible }).eq('id', existing.id)
     } else {
-      await supabase.from('repo_visibility').insert({ repo_name: fullName, visible })
+      await supabase.from('repo_visibility').insert({ owner_id: settings?.owner_id, repo_name: fullName, visible })
     }
     await refresh()
   }
@@ -93,7 +94,7 @@ export default function EditPage() {
     <div className="edit-page">
       <header className="edit-header">
         <div className="edit-header-left">
-          <button onClick={() => navigate('/')} className="edit-back-btn">
+          <button onClick={() => navigate(`/${currentUsername}/`)} className="edit-back-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>
             View Portfolio
           </button>

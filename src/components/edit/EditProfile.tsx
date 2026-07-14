@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { supabase, type PortfolioSettings } from '../../lib/supabase'
+import { useAuth } from '../../context/AuthContext'
 
 const AVATAR_BUCKET = 'avatars'
 const MAX_AVATAR_SIZE = 5 * 1024 * 1024
@@ -32,6 +33,7 @@ interface Props {
 }
 
 export default function EditProfile({ settings, saving, onSave }: Props) {
+  const { siteUserId, isAdmin } = useAuth()
   const [form, setForm] = useState({
     display_name: '',
     title: '',
@@ -79,7 +81,7 @@ export default function EditProfile({ settings, saving, onSave }: Props) {
     const { data, error } = await supabase
       .storage
       .from(AVATAR_BUCKET)
-      .list('', { limit: 100, sortBy: { column: 'created_at', order: 'desc' } })
+      .list(isAdmin ? '' : (siteUserId ?? ''), { limit: 100, sortBy: { column: 'created_at', order: 'desc' } })
 
     if (error) {
       setAvatarMsg(`Failed to load uploaded images: ${error.message}`)
@@ -91,12 +93,11 @@ export default function EditProfile({ settings, saving, onSave }: Props) {
     const rows = (data ?? [])
       .filter(file => !!file.name && !file.name.endsWith('/'))
       .map(file => {
-        const publicUrl = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(file.name).data.publicUrl
         return {
-          path: file.name,
+          path: isAdmin ? file.name : `${siteUserId}/${file.name}`,
           name: file.name,
           created_at: file.created_at ?? null,
-          url: publicUrl,
+          url: supabase.storage.from(AVATAR_BUCKET).getPublicUrl(isAdmin ? file.name : `${siteUserId}/${file.name}`).data.publicUrl,
         }
       })
 
@@ -106,7 +107,7 @@ export default function EditProfile({ settings, saving, onSave }: Props) {
 
   useEffect(() => {
     loadStoredAvatars()
-  }, [])
+  }, [siteUserId, isAdmin])
 
   const set = (key: string, value: string) => setForm(f => ({ ...f, [key]: value }))
 
@@ -130,7 +131,8 @@ export default function EditProfile({ settings, saving, onSave }: Props) {
 
     const ext = (file.name.split('.').pop() || 'jpg').toLowerCase()
     const baseName = file.name.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9-_]/g, '-').slice(0, 40) || 'avatar'
-    const path = `${Date.now()}-${baseName}.${ext}`
+    const fileName = `${Date.now()}-${baseName}.${ext}`
+    const path = isAdmin ? fileName : `${siteUserId}/${fileName}`
 
     const { error } = await supabase.storage.from(AVATAR_BUCKET).upload(path, file, {
       cacheControl: '3600',

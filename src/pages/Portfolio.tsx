@@ -35,6 +35,10 @@ export default function Portfolio() {
     return <div className="portfolio-loading"><div className="spinner" /></div>
   }
 
+  if (!settings) {
+    return <div className="portfolio-loading"><p>Portfolio not found.</p></div>
+  }
+
   const order = settings?.sections_order ?? ['hero', 'about', 'skills', 'experience', 'education', 'repos', 'cv_projects', 'awards', 'contact']
   const vis = settings?.sections_visible ?? {}
   const currentTheme: Theme = settings?.theme ?? 'dark'

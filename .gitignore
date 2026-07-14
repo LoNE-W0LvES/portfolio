@@ -1,5 +1,6 @@
 node_modules/
 .env
+client_secret_*.apps.googleusercontent.com.json
 supabase/add_user.sql
 supabase/seed_personal_data.sql
 supabase/migrate_personal.sql
