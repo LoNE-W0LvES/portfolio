@@ -1,0 +1,6 @@
+-- dumm_sql usage
+-- 1) Run 01_schema.sql
+-- 2) Edit and run 02_add_user.sql
+-- 3) Edit and run 03_seed_profile_data.sql
+--
+-- This folder is a reusable template for new users/projects.
