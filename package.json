@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "vite --host",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "auth:seed": "node scripts/seed-auth-users.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.0",
