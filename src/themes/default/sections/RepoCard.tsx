@@ -22,34 +22,16 @@ export default function RepoCard({ repo, langColors }: Props) {
     try {
       const res = await fetch(
         `https://api.github.com/repos/${repo.full_name}/readme`,
-        { headers: { Accept: 'application/vnd.github.raw' } }
+        { headers: { Accept: 'application/vnd.github.html+json' } }
       )
       if (!res.ok) throw new Error('no readme')
       const text = await res.text()
-      setReadme(text)
+      setReadme(text.startsWith('"') ? JSON.parse(text) : text)
     } catch {
       setReadmeError(true)
     } finally {
       setReadmeLoading(false)
     }
-  }
-
-  const renderReadme = (text: string) => {
-    let html = text
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/```[\w]*\n([\s\S]*?)```/g, '<pre class="readme-code"><code>$1</code></pre>')
-      .replace(/`([^`]+)`/g, '<code class="readme-inline-code">$1</code>')
-      .replace(/^### (.+)$/gm, '<h4 class="readme-h4">$1</h4>')
-      .replace(/^## (.+)$/gm, '<h3 class="readme-h3">$1</h3>')
-      .replace(/^# (.+)$/gm, '<h2 class="readme-h2">$1</h2>')
-      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-      .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer" class="readme-link">$1</a>')
-      .replace(/^---+$/gm, '<hr class="readme-hr" />')
-      .replace(/^[\-\*] (.+)$/gm, '<li>$1</li>')
-      .replace(/(<li>.*<\/li>\n?)+/g, '<ul class="readme-ul">$&</ul>')
-      .replace(/\n\n(?!<)/g, '</p><p class="readme-p">')
-    return `<p class="readme-p">${html}</p>`
   }
 
   return (
@@ -134,7 +116,7 @@ export default function RepoCard({ repo, langColors }: Props) {
           {readmeLoading && <div className="readme-loading"><div className="spinner" /></div>}
           {readmeError && <p className="readme-empty">No README found for this repository.</p>}
           {readme && (
-            <div className="readme-body" dangerouslySetInnerHTML={{ __html: renderReadme(readme) }} />
+            <div className="readme-body" dangerouslySetInnerHTML={{ __html: readme }} />
           )}
         </div>
       )}
