@@ -1,3 +1,0 @@
--- Superseded for security reasons.
--- Run fix_multi_tenant_approval.sql instead; it restores edit access while
--- ensuring each verified user can update only their own portfolio.

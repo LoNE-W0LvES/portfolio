@@ -66,7 +66,7 @@ if (emailError) {
 const emails = [...new Set((emailRows ?? []).map((row) => (row.email || "").trim().toLowerCase()).filter(Boolean))];
 
 if (emails.length === 0) {
-  console.error("No emails found in site_user_emails. Run add_user.sql first.");
+  console.error("No emails found in site_user_emails. Run supabase/schema.sql first.");
   process.exit(1);
 }
 

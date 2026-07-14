@@ -62,6 +62,10 @@ CREATE TABLE IF NOT EXISTS portfolio_settings (
 
 -- Ensure single settings row exists
 INSERT INTO portfolio_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+SELECT setval(
+  pg_get_serial_sequence('public.portfolio_settings', 'id'),
+  GREATEST((SELECT COALESCE(MAX(id), 1) FROM public.portfolio_settings), 1)
+);
 
 -- repo visibility toggles
 CREATE TABLE IF NOT EXISTS repo_visibility (
@@ -227,7 +231,7 @@ BEGIN
   SELECT user_id INTO admin_id FROM site_user_emails
   WHERE lower(email) IN ('nafimnr00@gmail.com','nafimnr05@gmail.com','nafithelonewolves@gmail.com') LIMIT 1;
   IF admin_id IS NULL THEN
-    INSERT INTO site_users (handle, display_name, role, status)
+    INSERT INTO site_users (handle, display_name, role, status, username_set)
     VALUES ('lonewolves', 'MD Nafiur Rahman', 'admin', 'verified', true) RETURNING id INTO admin_id;
   ELSE
     UPDATE site_users SET role = 'admin', status = 'verified', username_set=true WHERE id = admin_id;
