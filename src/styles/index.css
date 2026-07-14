@@ -62,6 +62,12 @@ img{max-width:100%;display:block}
 .section-title-link:hover{color:var(--accent)}
 .section-empty{color:var(--text2);font-size:.95rem}
 
+/* DEFAULT VIEWER — SECTION SCROLL SNAP */
+.default-portfolio{height:100vh;height:100svh;overflow-y:auto;overflow-x:hidden;scroll-snap-type:y mandatory;scroll-behavior:smooth;overscroll-behavior-y:contain;scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--accent) 60%,var(--text3)) var(--bg)}
+.default-portfolio>.section{min-height:100vh;min-height:100svh;scroll-snap-align:start;scroll-snap-stop:always}
+.default-portfolio::-webkit-scrollbar{width:9px}.default-portfolio::-webkit-scrollbar-track{background:var(--bg)}.default-portfolio::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--accent) 60%,var(--text3));border:2px solid var(--bg);border-radius:999px}.default-portfolio::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+@media(prefers-reduced-motion:reduce){.default-portfolio{scroll-behavior:auto}}
+
 /* ============================================================ HERO */
 .hero-section{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;position:relative;overflow:hidden}
 .hero-bg-glow{position:absolute;inset:0;background:radial-gradient(ellipse at 50% -20%,color-mix(in srgb,var(--accent) 18%,transparent) 0%,transparent 70%);pointer-events:none}
