@@ -78,7 +78,19 @@ export default async function handler(req: any, res: any) {
     if ((entry as any).site_users?.role === 'admin') return fail(res, 403, 'Admin accounts cannot be changed here.')
 
     if (req.method === 'PATCH') {
-      if (req.body?.action === 'verify') {
+      if (req.body?.action === 'edit') {
+        const displayName = String(req.body?.display_name || '').trim()
+        const username = String(req.body?.username || '').trim().toLowerCase()
+        if (!displayName) return fail(res, 400, 'Name is required.')
+        if (!/^[a-z0-9_-]{3,30}$/.test(username)) return fail(res, 400, 'Username must be 3–30 lowercase letters, numbers, underscores, or hyphens.')
+        if (['edit','api','admin','login','signup','lonewolves'].includes(username)) return fail(res, 400, 'That username is reserved.')
+        const { data: conflict } = await admin.from('site_users').select('id').eq('handle', username).neq('id', entry.user_id).maybeSingle()
+        if (conflict) return fail(res, 409, 'That username is already in use.')
+        const { error: userError } = await admin.from('site_users').update({ display_name: displayName, handle: username, username_set: true }).eq('id', entry.user_id)
+        if (userError) throw userError
+        const { error: portfolioError } = await admin.from('portfolio_settings').update({ display_name: displayName, slug: username }).eq('owner_id', entry.user_id)
+        if (portfolioError) throw portfolioError
+      } else if (req.body?.action === 'verify') {
         if (!(entry as any).site_users?.username_set) return fail(res, 400, 'User must choose a username before approval.')
         if (entry.auth_user_id) {
           const { error } = await admin.auth.admin.updateUserById(entry.auth_user_id, { email_confirm: true })

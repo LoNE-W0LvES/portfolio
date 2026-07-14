@@ -20,6 +20,9 @@ export default function AdminUsers() {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [showCreate, setShowCreate] = useState(false)
+  const [editingUser, setEditingUser] = useState<ManagedUser | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editUsername, setEditUsername] = useState('')
 
   const request = async (method: string, body?: object) => {
     const { data: { session } } = await supabase.auth.getSession()
@@ -58,6 +61,18 @@ export default function AdminUsers() {
     setEmail(''); setPassword(''); setDisplayName(''); setUsername(''); setShowCreate(false); setMessage('User created.')
   })
 
+  const openEdit = (user: ManagedUser) => {
+    setEditingUser(user); setEditName(user.display_name); setEditUsername(user.username_set ? user.username : '')
+  }
+
+  const saveEdit = () => {
+    if (!editingUser?.emails[0]) return
+    run(async () => {
+      await request('PATCH', { action: 'edit', email: editingUser.emails[0].email, display_name: editName, username: editUsername })
+      setEditingUser(null); setMessage('User updated.')
+    })
+  }
+
   return (
     <div className="admin-users">
       <h2>User Management</h2>
@@ -76,6 +91,16 @@ export default function AdminUsers() {
           <div className="admin-modal-actions"><button type="button" className="btn-outline" disabled={busy} onClick={() => setShowCreate(false)}>Cancel</button><button type="button" className="btn-primary" disabled={busy || !email || password.length < 8 || username.length < 3} onClick={createUser}>{busy ? 'Creating…' : 'Create User'}</button></div>
         </div>
       </div>}
+      {editingUser && <div className="admin-modal-overlay" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) setEditingUser(null) }}>
+        <div className="admin-modal" role="dialog" aria-modal="true" aria-labelledby="edit-user-title">
+          <div className="admin-modal-header"><h3 id="edit-user-title">Edit User</h3><button type="button" className="icon-btn" aria-label="Close" onClick={() => setEditingUser(null)}>×</button></div>
+          <div className="edit-form-grid">
+            <div className="field field-full"><label>Name</label><input value={editName} onChange={e => setEditName(e.target.value)} autoFocus /></div>
+            <div className="field field-full"><label>Username</label><input value={editUsername} onChange={e => setEditUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ''))} minLength={3} maxLength={30} /><span className="field-help">Changing this also changes the portfolio URL.</span></div>
+          </div>
+          <div className="admin-modal-actions"><button type="button" className="btn-outline" disabled={busy} onClick={() => setEditingUser(null)}>Cancel</button><button type="button" className="btn-primary" disabled={busy || !editName.trim() || editUsername.length < 3} onClick={saveEdit}>{busy ? 'Saving…' : 'Save Changes'}</button></div>
+        </div>
+      </div>}
       <div className="admin-user-list">
         {users.map(user => (
           <div className="edit-edu-card" key={user.id}>
@@ -84,6 +109,7 @@ export default function AdminUsers() {
               <div className="admin-email-row" key={item.email}>
                 <span>{item.email}</span><span>{item.verified ? 'Verified' : 'Unverified'}</span>
                 {user.role !== 'admin' && <div className="avatar-actions">
+                  <button className="btn-outline" disabled={busy} onClick={() => openEdit(user)}>Edit</button>
                   {user.status !== 'verified' && user.username_set && <button className="btn-outline" disabled={busy} onClick={() => run(async () => { await request('PATCH', { action: 'verify', email: item.email }); setMessage('User verified and approved.') })}>Verify</button>}
                   <button className="btn-outline" disabled={busy} onClick={() => run(async () => { await request('PATCH', { action: 'reset', email: item.email }); setMessage('Password reset email sent.') })}>Reset Password</button>
                   <button className="edit-signout-btn" disabled={busy} onClick={() => { if (confirm(`Delete ${item.email}?`)) run(async () => { await request('DELETE', { email: item.email }); setMessage('User deleted.') }) }}>Delete</button>
