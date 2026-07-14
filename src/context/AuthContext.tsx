@@ -17,49 +17,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [allowedEmails, setAllowedEmails] = useState<string[]>([])
 
+  const fetchAllowed = async () => {
+    const { data, error } = await supabase.from('site_user_emails').select('email')
+    if (error) return
+    setAllowedEmails((data ?? []).map((r: any) => String(r.email).toLowerCase()))
+  }
+
   useEffect(() => {
     // load current session
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       setSession(data.session)
+      if (data.session) await fetchAllowed()
       setLoading(false)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session)
-    })
-
-    // fetch allowed emails from DB
-    const fetchAllowed = async () => {
-      try {
-        const { data, error } = await supabase.from('site_user_emails').select('email')
-        if (!error && data) {
-          setAllowedEmails(data.map((r: any) => String(r.email).toLowerCase()))
-        }
-      } catch (e) {
-        // ignore — default list will be empty (no owners)
-        console.error('Failed to load allowed emails', e)
+      if (session) {
+        await fetchAllowed()
+      } else {
+        setAllowedEmails([])
       }
-    }
-    fetchAllowed()
+    })
 
     return () => subscription.unsubscribe()
   }, [])
 
   const isOwner = !!(session?.user?.email && allowedEmails.includes(session.user.email.toLowerCase()))
 
-  // signIn first checks if email exists in site_user_emails, then calls Supabase auth
+  // signIn with password first, then enforce DB allowlist and sign out if not allowed
   const signIn = async (email: string, password: string): Promise<string | null> => {
     const normalized = email.toLowerCase().trim()
-    try {
-      const { data, error } = await supabase.from('site_user_emails').select('email').ilike('email', normalized)
-      if (error) return 'Access check failed.'
-      if (!data || data.length === 0) return 'Access denied.'
-    } catch (e) {
-      return 'Access check failed.'
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email: normalized, password })
+    if (signInError) return signInError.message
+
+    const { data, error: allowlistError } = await supabase
+      .from('site_user_emails')
+      .select('email')
+      .ilike('email', normalized)
+      .limit(1)
+
+    if (allowlistError || !data || data.length === 0) {
+      await supabase.auth.signOut()
+      return 'Access denied.'
     }
 
-    const { error } = await supabase.auth.signInWithPassword({ email: normalized, password })
-    if (error) return error.message
+    await fetchAllowed()
     return null
   }
 
