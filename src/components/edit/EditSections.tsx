@@ -13,6 +13,9 @@ const SECTION_LABELS: Record<string, string> = {
   skills: 'Technical Skills',
   experience: 'Work Experience',
   education: 'Education',
+  certifications: 'Certifications',
+  services: 'Services',
+  testimonials: 'Testimonials',
   repos: 'GitHub Repositories',
   cv_projects: 'Projects',
   awards: 'Awards & Recognition',
@@ -20,7 +23,7 @@ const SECTION_LABELS: Record<string, string> = {
 }
 
 export default function EditSections({ settings, saving, onSave }: Props) {
-  const ALL = ['hero', 'about', 'skills', 'experience', 'education', 'repos', 'cv_projects', 'awards', 'contact']
+  const ALL = ['hero', 'about', 'skills', 'experience', 'education', 'certifications', 'services', 'testimonials', 'repos', 'cv_projects', 'awards', 'contact']
   const [order, setOrder] = useState<string[]>(ALL)
   const [visible, setVisible] = useState<Record<string, boolean>>(
     Object.fromEntries(ALL.map(k => [k, true]))

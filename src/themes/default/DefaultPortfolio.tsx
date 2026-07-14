@@ -9,6 +9,9 @@ import ReposSection from './sections/ReposSection'
 import CvProjectsSection from './sections/CvProjectsSection'
 import AwardsSection from './sections/AwardsSection'
 import ContactSection from './sections/ContactSection'
+import CertificationsSection from './sections/CertificationsSection'
+import ServicesSection from './sections/ServicesSection'
+import TestimonialsSection from './sections/TestimonialsSection'
 
 interface Props { settings: PortfolioSettings; repos: GitHubRepo[]; reposLoading: boolean; onThemeToggle: (theme: Theme) => void }
 
@@ -19,6 +22,9 @@ export default function DefaultPortfolio({ settings, repos, reposLoading, onThem
     hero: <HeroSection key="hero" settings={settings} />, about: <AboutSection key="about" settings={settings} />,
     skills: <SkillsSection key="skills" settings={settings} />, experience: <ExperienceSection key="experience" settings={settings} />,
     education: <EducationSection key="education" settings={settings} />,
+    certifications: <CertificationsSection key="certifications" settings={settings} />,
+    services: <ServicesSection key="services" settings={settings} />,
+    testimonials: <TestimonialsSection key="testimonials" settings={settings} />,
     repos: <ReposSection key="repos" repos={repos} loading={reposLoading} githubUsername={settings.github_username} />,
     cv_projects: <CvProjectsSection key="cv_projects" settings={settings} />, awards: <AwardsSection key="awards" settings={settings} />,
     contact: <ContactSection key="contact" settings={settings} />,

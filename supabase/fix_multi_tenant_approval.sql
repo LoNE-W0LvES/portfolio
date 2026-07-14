@@ -11,7 +11,24 @@ ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS slug text;
 ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS is_published boolean NOT NULL DEFAULT false;
 ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS viewer_theme text NOT NULL DEFAULT 'default';
 ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS show_light_mode_bugs boolean NOT NULL DEFAULT false;
+ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS seo_title text NOT NULL DEFAULT '';
+ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS seo_description text NOT NULL DEFAULT '';
+ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS social_image_url text NOT NULL DEFAULT '';
+ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS favicon_url text NOT NULL DEFAULT '';
+ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS search_indexable boolean NOT NULL DEFAULT true;
 ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS contacts jsonb NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS certifications jsonb NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS services jsonb NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS testimonials jsonb NOT NULL DEFAULT '[]'::jsonb;
+UPDATE public.portfolio_settings SET
+  sections_order = CASE WHEN sections_order ? 'services' THEN sections_order ELSE sections_order || '"services"'::jsonb END,
+  sections_visible = sections_visible || '{"services":true}'::jsonb;
+UPDATE public.portfolio_settings SET
+  sections_order = CASE WHEN sections_order ? 'testimonials' THEN sections_order ELSE sections_order || '"testimonials"'::jsonb END,
+  sections_visible = sections_visible || '{"testimonials":true}'::jsonb;
+UPDATE public.portfolio_settings SET
+  sections_order = CASE WHEN sections_order ? 'certifications' THEN sections_order ELSE sections_order || '"certifications"'::jsonb END,
+  sections_visible = sections_visible || '{"certifications":true}'::jsonb;
 ALTER TABLE public.portfolio_settings DROP CONSTRAINT IF EXISTS portfolio_settings_viewer_theme_check;
 ALTER TABLE public.portfolio_settings ADD CONSTRAINT portfolio_settings_viewer_theme_check CHECK(viewer_theme IN ('default','kinetic'));
 

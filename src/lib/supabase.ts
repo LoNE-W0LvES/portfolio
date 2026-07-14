@@ -54,6 +54,31 @@ export interface Language {
   level: string
 }
 
+export interface Certification {
+  name: string
+  issuer: string
+  issue_date: string
+  expiry_date: string
+  credential_id: string
+  credential_url: string
+}
+
+export interface Service {
+  title: string
+  description: string
+  price: string
+  link: string
+  link_label: string
+}
+
+export interface Testimonial {
+  name: string
+  role: string
+  company: string
+  quote: string
+  avatar_url: string
+}
+
 export interface PortfolioSettings {
   id: number
   owner_id: string
@@ -80,9 +105,17 @@ export interface PortfolioSettings {
   theme: Theme
   viewer_theme: ViewerTheme
   show_light_mode_bugs: boolean
+  seo_title: string
+  seo_description: string
+  social_image_url: string
+  favicon_url: string
+  search_indexable: boolean
   accent_color: string
   skills: Skill[]
   education: Education[]
+  certifications: Certification[]
+  services: Service[]
+  testimonials: Testimonial[]
   work_experience: WorkExperience[]
   contacts: ContactLink[]
   cv_projects: CvProject[]

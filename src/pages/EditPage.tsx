@@ -14,8 +14,15 @@ import EditEducation from '../components/edit/EditEducation'
 import EditExperience from '../components/edit/EditExperience'
 import AdminUsers from '../components/edit/AdminUsers'
 import EditContacts from '../components/edit/EditContacts'
+import EditSeo from '../components/edit/EditSeo'
+import EditCertifications from '../components/edit/EditCertifications'
+import EditAnalytics from '../components/edit/EditAnalytics'
+import EditBackup from '../components/edit/EditBackup'
+import EditServicesTestimonials from '../components/edit/EditServicesTestimonials'
+import EditCvExport from '../components/edit/EditCvExport'
+import EditAwardsRecognition from '../components/edit/EditAwardsRecognition'
 
-type Tab = 'profile' | 'sections' | 'theme' | 'repos' | 'skills' | 'projects' | 'education' | 'experience' | 'contacts' | 'users'
+type Tab = 'profile' | 'sections' | 'theme' | 'seo' | 'analytics' | 'backup' | 'cv_export' | 'services' | 'awards' | 'repos' | 'skills' | 'projects' | 'education' | 'certifications' | 'experience' | 'contacts' | 'users'
 
 export default function EditPage() {
   const { isOwner, isAdmin, username: currentUsername, loading: authLoading, signOut } = useAuth()
@@ -82,14 +89,21 @@ export default function EditPage() {
   const tabs: { id: Tab; label: string }[] = [
     { id: 'profile', label: 'Profile' },
     { id: 'sections', label: 'Sections' },
-    { id: 'theme', label: 'Theme' },
     { id: 'skills', label: 'Skills' },
     { id: 'education', label: 'Education' },
+    { id: 'certifications', label: 'Certifications' },
+    { id: 'services', label: 'Services & Testimonials' },
+    { id: 'awards', label: 'Awards & Recognition' },
     { id: 'experience', label: 'Experience' },
     { id: 'contacts', label: 'Contacts' },
     { id: 'projects', label: 'Projects' },
     { id: 'repos', label: 'Repos' },
     ...(isAdmin ? [{ id: 'users' as Tab, label: 'Users' }] : []),
+    { id: 'theme', label: 'Theme' },
+    { id: 'seo', label: 'SEO & Sharing' },
+    { id: 'analytics', label: 'Analytics' },
+    { id: 'backup', label: 'Backup' },
+    { id: 'cv_export', label: 'Export CV' },
   ]
 
   return (
@@ -120,8 +134,15 @@ export default function EditPage() {
         {tab === 'profile' && <EditProfile settings={settings} saving={saving} onSave={saveSettings} />}
         {tab === 'sections' && <EditSections settings={settings} saving={saving} onSave={saveSettings} />}
         {tab === 'theme' && <EditTheme settings={settings} saving={saving} onSave={saveSettings} />}
+        {tab === 'seo' && <EditSeo settings={settings} saving={saving} onSave={saveSettings} />}
+        {tab === 'analytics' && <EditAnalytics settings={settings} />}
+        {tab === 'backup' && <EditBackup settings={settings} saving={saving} onSave={saveSettings} onRefresh={refresh} />}
+        {tab === 'cv_export' && <EditCvExport settings={settings} />}
         {tab === 'skills' && <EditSkills settings={settings} saving={saving} onSave={saveSettings} />}
         {tab === 'education' && <EditEducation settings={settings} saving={saving} onSave={saveSettings} />}
+        {tab === 'certifications' && <EditCertifications settings={settings} saving={saving} onSave={saveSettings} />}
+        {tab === 'services' && <EditServicesTestimonials settings={settings} saving={saving} onSave={saveSettings} />}
+        {tab === 'awards' && <EditAwardsRecognition settings={settings} saving={saving} onSave={saveSettings} />}
         {tab === 'experience' && <EditExperience settings={settings} saving={saving} onSave={saveSettings} />}
         {tab === 'contacts' && <EditContacts settings={settings} saving={saving} onSave={saveSettings} />}
         {tab === 'projects' && <EditCvProjects settings={settings} saving={saving} onSave={saveSettings} />}
