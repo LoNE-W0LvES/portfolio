@@ -363,6 +363,8 @@ a.timeline-inst:hover{color:var(--accent)}
 .edit-edu-panel,.edit-cvp-panel{display:flex;flex-direction:column;gap:20px}
 .edit-edu-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;flex-direction:column;gap:14px}
 .edit-edu-card-header{display:flex;align-items:center;justify-content:space-between}
+.contact-edit-heading{display:flex;align-items:center;gap:10px}.contact-edit-heading img,.contact-edit-heading span{width:32px;height:32px;border-radius:8px;background:var(--bg3);display:grid;place-items:center;object-fit:contain;padding:4px}
+.contact-card-label{display:flex;flex-direction:column;gap:2px}.contact-card-label small{font-size:.72rem;color:var(--text3);font-weight:400}
 .edit-edu-num{font-size:.85rem;font-weight:600;color:var(--text2)}
 
 /* REPO CHEVRON + CLICK HINT */

@@ -31,6 +31,12 @@ export interface WorkExperience {
   description: string
 }
 
+export interface ContactLink {
+  platform_name: string
+  platform_link: string
+  platform_username: string
+}
+
 export interface CvProject {
   title: string
   description: string
@@ -77,6 +83,7 @@ export interface PortfolioSettings {
   skills: Skill[]
   education: Education[]
   work_experience: WorkExperience[]
+  contacts: ContactLink[]
   cv_projects: CvProject[]
   awards: Award[]
   languages: Language[]

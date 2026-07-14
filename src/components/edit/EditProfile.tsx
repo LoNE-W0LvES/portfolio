@@ -39,16 +39,9 @@ export default function EditProfile({ settings, saving, onSave }: Props) {
     title: '',
     bio: '',
     avatar_url: '',
-    email: '',
     location: '',
     nationality: '',
-    phone: '',
-    whatsapp: '',
     github_username: '',
-    website_url: '',
-    linkedin_url: '',
-    twitter_url: '',
-    discord_username: '',
   })
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [avatarsLoading, setAvatarsLoading] = useState(false)
@@ -62,16 +55,9 @@ export default function EditProfile({ settings, saving, onSave }: Props) {
         title: settings.title,
         bio: settings.bio,
         avatar_url: settings.avatar_url,
-        email: settings.email,
         location: settings.location,
         nationality: settings.nationality,
-        phone: settings.phone,
-        whatsapp: settings.whatsapp,
         github_username: settings.github_username,
-        website_url: settings.website_url,
-        linkedin_url: settings.linkedin_url,
-        twitter_url: settings.twitter_url,
-        discord_username: settings.discord_username,
       })
     }
   }, [settings])
@@ -263,36 +249,8 @@ export default function EditProfile({ settings, saving, onSave }: Props) {
           <input value={form.location} onChange={e => set('location', e.target.value)} placeholder="Dhaka, Bangladesh" />
         </div>
         <div className="field">
-          <label>Email</label>
-          <input type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="you@example.com" />
-        </div>
-        <div className="field">
-          <label>Phone</label>
-          <input value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="+880..." />
-        </div>
-        <div className="field">
-          <label>WhatsApp Number</label>
-          <input value={form.whatsapp} onChange={e => set('whatsapp', e.target.value)} placeholder="+8801..." />
-        </div>
-        <div className="field">
           <label>GitHub Username</label>
           <input value={form.github_username} onChange={e => set('github_username', e.target.value)} placeholder="octocat" />
-        </div>
-        <div className="field">
-          <label>Discord Username</label>
-          <input value={form.discord_username} onChange={e => set('discord_username', e.target.value)} placeholder="lonewolves" />
-        </div>
-        <div className="field">
-          <label>Website URL</label>
-          <input value={form.website_url} onChange={e => set('website_url', e.target.value)} placeholder="https://yoursite.com" />
-        </div>
-        <div className="field">
-          <label>LinkedIn URL</label>
-          <input value={form.linkedin_url} onChange={e => set('linkedin_url', e.target.value)} placeholder="https://linkedin.com/in/..." />
-        </div>
-        <div className="field">
-          <label>Twitter / X URL</label>
-          <input value={form.twitter_url} onChange={e => set('twitter_url', e.target.value)} placeholder="https://x.com/..." />
         </div>
       </div>
       <div className="edit-form-footer">

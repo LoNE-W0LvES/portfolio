@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS portfolio_settings (
   skills jsonb NOT NULL DEFAULT '[]'::jsonb,
   education jsonb NOT NULL DEFAULT '[]'::jsonb,
   work_experience jsonb NOT NULL DEFAULT '[]'::jsonb,
+  contacts jsonb NOT NULL DEFAULT '[]'::jsonb,
   cv_projects jsonb NOT NULL DEFAULT '[]'::jsonb,
   awards jsonb NOT NULL DEFAULT '[]'::jsonb,
   languages jsonb NOT NULL DEFAULT '[]'::jsonb,

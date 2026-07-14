@@ -10,8 +10,23 @@ ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS is_primary boolea
 ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS slug text;
 ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS is_published boolean NOT NULL DEFAULT false;
 ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS viewer_theme text NOT NULL DEFAULT 'default';
+ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS contacts jsonb NOT NULL DEFAULT '[]'::jsonb;
 ALTER TABLE public.portfolio_settings DROP CONSTRAINT IF EXISTS portfolio_settings_viewer_theme_check;
 ALTER TABLE public.portfolio_settings ADD CONSTRAINT portfolio_settings_viewer_theme_check CHECK(viewer_theme IN ('default','kinetic'));
+
+UPDATE public.portfolio_settings p SET contacts = COALESCE((
+  SELECT jsonb_agg(jsonb_build_object('platform_name', v.name, 'platform_link', v.link, 'platform_username', v.username))
+  FROM (VALUES
+    ('Email', CASE WHEN p.email<>'' THEN 'mailto:'||p.email ELSE '' END, p.email),
+    ('Phone', CASE WHEN p.phone<>'' THEN 'tel:'||regexp_replace(p.phone,'\s','','g') ELSE '' END, p.phone),
+    ('WhatsApp', CASE WHEN p.whatsapp<>'' THEN 'https://wa.me/'||regexp_replace(p.whatsapp,'\D','','g') ELSE '' END, p.whatsapp),
+    ('LinkedIn', p.linkedin_url, 'Connect'),
+    ('GitHub', CASE WHEN p.github_username<>'' THEN 'https://github.com/'||p.github_username ELSE '' END, CASE WHEN p.github_username<>'' THEN '@'||p.github_username ELSE '' END),
+    ('Discord', CASE WHEN p.discord_username<>'' THEN 'https://discord.com/' ELSE '' END, p.discord_username),
+    ('Twitter / X', p.twitter_url, 'Follow'),
+    ('Website', p.website_url, 'Visit website')
+  ) AS v(name,link,username) WHERE v.link<>''
+), '[]'::jsonb) WHERE p.contacts='[]'::jsonb;
 ALTER TABLE public.repo_visibility ADD COLUMN IF NOT EXISTS owner_id uuid;
 
 UPDATE public.site_users SET handle='lonewolves', username_set=true WHERE role='admin';

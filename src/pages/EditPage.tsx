@@ -13,8 +13,9 @@ import EditCvProjects from '../components/edit/EditCvProjects'
 import EditEducation from '../components/edit/EditEducation'
 import EditExperience from '../components/edit/EditExperience'
 import AdminUsers from '../components/edit/AdminUsers'
+import EditContacts from '../components/edit/EditContacts'
 
-type Tab = 'profile' | 'sections' | 'theme' | 'repos' | 'skills' | 'projects' | 'education' | 'experience' | 'users'
+type Tab = 'profile' | 'sections' | 'theme' | 'repos' | 'skills' | 'projects' | 'education' | 'experience' | 'contacts' | 'users'
 
 export default function EditPage() {
   const { isOwner, isAdmin, username: currentUsername, loading: authLoading, signOut } = useAuth()
@@ -85,6 +86,7 @@ export default function EditPage() {
     { id: 'skills', label: 'Skills' },
     { id: 'education', label: 'Education' },
     { id: 'experience', label: 'Experience' },
+    { id: 'contacts', label: 'Contacts' },
     { id: 'projects', label: 'Projects' },
     { id: 'repos', label: 'Repos' },
     ...(isAdmin ? [{ id: 'users' as Tab, label: 'Users' }] : []),
@@ -121,6 +123,7 @@ export default function EditPage() {
         {tab === 'skills' && <EditSkills settings={settings} saving={saving} onSave={saveSettings} />}
         {tab === 'education' && <EditEducation settings={settings} saving={saving} onSave={saveSettings} />}
         {tab === 'experience' && <EditExperience settings={settings} saving={saving} onSave={saveSettings} />}
+        {tab === 'contacts' && <EditContacts settings={settings} saving={saving} onSave={saveSettings} />}
         {tab === 'projects' && <EditCvProjects settings={settings} saving={saving} onSave={saveSettings} />}
         {tab === 'repos' && (
           <EditRepos
