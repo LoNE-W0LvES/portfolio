@@ -1,5 +1,6 @@
 import React from 'react'
 import type { PortfolioSettings } from '../../../lib/supabase'
+import { tr } from '../../../lib/i18n'
 
 interface Props { settings: PortfolioSettings | null }
 
@@ -10,7 +11,7 @@ export default function CvProjectsSection({ settings }: Props) {
   return (
     <section id="cv_projects" className="section cv-projects-section">
       <div className="section-inner">
-        <h2 className="section-title">Projects</h2>
+        <h2 className="section-title">{tr(settings?.preferred_language,'projects')}</h2>
         <div className="cvp-grid">
           {projects.map((p, i) => (
             <div key={i} className="cvp-card">

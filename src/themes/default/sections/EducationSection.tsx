@@ -1,5 +1,6 @@
 import React from 'react'
 import type { PortfolioSettings } from '../../../lib/supabase'
+import { tr } from '../../../lib/i18n'
 
 interface Props { settings: PortfolioSettings | null }
 
@@ -10,7 +11,7 @@ export default function EducationSection({ settings }: Props) {
   return (
     <section id="education" className="section education-section snap-compact">
       <div className="section-inner">
-        <h2 className="section-title">Education</h2>
+        <h2 className="section-title">{tr(settings?.preferred_language,'education')}</h2>
         <div className="timeline">
           {edu.map((e, i) => (
             <div key={i} className="timeline-item">

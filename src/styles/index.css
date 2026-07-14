@@ -235,8 +235,11 @@ a.timeline-inst:hover{color:var(--accent)}
 .login-form{display:flex;flex-direction:column;gap:16px}
 .field{display:flex;flex-direction:column;gap:6px}
 .field label{font-size:.85rem;font-weight:500;color:var(--text2)}
-.field input,.field textarea{padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:.9rem;transition:border-color .2s;outline:none;resize:vertical}
-.field input:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent)}
+.field input,.field textarea,.field select{width:100%;padding:10px 14px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg3);color:var(--text);font:inherit;font-size:.9rem;transition:border-color .2s,box-shadow .2s;outline:none}
+.field textarea{resize:vertical}
+.field select{min-height:41px;cursor:pointer;color-scheme:dark light}
+.field select option{background:var(--bg3);color:var(--text)}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent)}
 .field-help{font-size:.75rem;color:var(--text3)}
 .username-available{color:#10b981}.username-taken{color:#ef4444}
 .login-error{font-size:.85rem;color:#ef4444;background:rgba(239,68,68,.1);padding:10px 14px;border-radius:var(--radius-sm);border:1px solid rgba(239,68,68,.2)}

@@ -21,6 +21,7 @@ import EditBackup from '../components/edit/EditBackup'
 import EditServicesTestimonials from '../components/edit/EditServicesTestimonials'
 import EditCvExport from '../components/edit/EditCvExport'
 import EditAwardsRecognition from '../components/edit/EditAwardsRecognition'
+import { tr } from '../lib/i18n'
 
 type Tab = 'profile' | 'sections' | 'theme' | 'seo' | 'analytics' | 'backup' | 'cv_export' | 'services' | 'awards' | 'repos' | 'skills' | 'projects' | 'education' | 'certifications' | 'experience' | 'contacts' | 'users'
 
@@ -85,25 +86,10 @@ export default function EditPage() {
 
   if (authLoading) return <div className="portfolio-loading"><div className="spinner" /></div>
   if (!isOwner) return null
+  const t = (key: Parameters<typeof tr>[1]) => tr(settings?.preferred_language, key)
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: 'profile', label: 'Profile' },
-    { id: 'sections', label: 'Sections' },
-    { id: 'skills', label: 'Skills' },
-    { id: 'education', label: 'Education' },
-    { id: 'certifications', label: 'Certifications' },
-    { id: 'services', label: 'Services & Testimonials' },
-    { id: 'awards', label: 'Awards & Recognition' },
-    { id: 'experience', label: 'Experience' },
-    { id: 'contacts', label: 'Contacts' },
-    { id: 'projects', label: 'Projects' },
-    { id: 'repos', label: 'Repos' },
-    ...(isAdmin ? [{ id: 'users' as Tab, label: 'Users' }] : []),
-    { id: 'theme', label: 'Theme' },
-    { id: 'seo', label: 'SEO & Sharing' },
-    { id: 'analytics', label: 'Analytics' },
-    { id: 'backup', label: 'Backup' },
-    { id: 'cv_export', label: 'Export CV' },
+    { id: 'profile', label:t('profile') },{ id:'sections',label:t('sections') },{ id:'skills',label:t('skills') },{ id:'education',label:t('education') },{ id:'certifications',label:t('certifications') },{ id:'services',label:t('services') },{ id:'awards',label:t('awards') },{ id:'experience',label:t('experience') },{ id:'contacts',label:t('contacts') },{ id:'projects',label:t('projects') },{ id:'repos',label:t('repos') },...(isAdmin?[{id:'users' as Tab,label:t('users')}]:[]),{id:'theme',label:t('theme')},{id:'seo',label:t('seo')},{id:'analytics',label:t('analytics')},{id:'backup',label:t('backup')},{id:'cv_export',label:t('exportCv')}
   ]
 
   return (
@@ -112,13 +98,13 @@ export default function EditPage() {
         <div className="edit-header-left">
           <button onClick={() => navigate(`/${currentUsername}/`)} className="edit-back-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M19 12H5M5 12l7 7M5 12l7-7"/></svg>
-            View Portfolio
+            {t('viewPortfolio')}
           </button>
-          <h1 className="edit-title">Edit Portfolio</h1>
+          <h1 className="edit-title">{t('editPortfolio')}</h1>
         </div>
         <div className="edit-header-right">
           {saveMsg && <span className={`save-msg ${saveMsg.startsWith('Error') ? 'save-msg-error' : 'save-msg-ok'}`}>{saveMsg}</span>}
-          <button onClick={signOut} className="edit-signout-btn">Sign Out</button>
+          <button onClick={signOut} className="edit-signout-btn">{t('signOut')}</button>
         </div>
       </header>
 

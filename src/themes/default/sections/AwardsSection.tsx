@@ -1,5 +1,6 @@
 import React from 'react'
 import type { PortfolioSettings } from '../../../lib/supabase'
+import { tr } from '../../../lib/i18n'
 
 interface Props { settings: PortfolioSettings | null }
 
@@ -10,7 +11,7 @@ export default function AwardsSection({ settings }: Props) {
   return (
     <section id="awards" className="section awards-section snap-compact">
       <div className="section-inner">
-        <h2 className="section-title">Awards & Recognition</h2>
+        <h2 className="section-title">{tr(settings?.preferred_language,'awards')}</h2>
         <div className="awards-list">
           {awards.map((a, i) => (
             <div key={i} className="award-card">

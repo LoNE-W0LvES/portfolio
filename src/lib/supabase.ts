@@ -7,6 +7,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export type Theme = 'light' | 'dark'
 export type ViewerTheme = 'default' | 'kinetic'
+export type PortfolioLanguage = 'en' | 'bn' | 'ja' | 'zh' | 'th' | 'id' | 'ko'
 
 export interface Skill {
   category: string
@@ -105,6 +106,7 @@ export interface PortfolioSettings {
   theme: Theme
   viewer_theme: ViewerTheme
   show_light_mode_bugs: boolean
+  preferred_language: PortfolioLanguage
   seo_title: string
   seo_description: string
   social_image_url: string

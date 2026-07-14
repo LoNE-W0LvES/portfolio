@@ -16,12 +16,13 @@ function ThemeApplicator({ children }: { children: React.ReactNode }) {
     const accent = settings?.accent_color ?? '#3b82f6'
 
     root.setAttribute('data-theme', theme)
+    root.setAttribute('lang', settings?.preferred_language ?? 'en')
     root.style.setProperty('--accent', accent)
     root.style.setProperty('--accent-hover', accent + 'dd')
 
     const bugsEnabled = settings?.viewer_theme === 'default' && settings?.show_light_mode_bugs === true
     setShowBugs(theme === 'light' && bugsEnabled)
-  }, [settings?.theme, settings?.accent_color, settings?.viewer_theme, settings?.show_light_mode_bugs])
+  }, [settings?.theme, settings?.accent_color, settings?.viewer_theme, settings?.show_light_mode_bugs, settings?.preferred_language])
 
   const keepLight = () => setShowBugs(true)
 

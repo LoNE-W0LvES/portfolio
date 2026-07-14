@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { supabase, type PortfolioSettings } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
+import { tr } from '../../lib/i18n'
 
 const AVATAR_BUCKET = 'avatars'
 const MAX_AVATAR_SIZE = 5 * 1024 * 1024
@@ -33,6 +34,7 @@ interface Props {
 }
 
 export default function EditProfile({ settings, saving, onSave }: Props) {
+  const t = (key: Parameters<typeof tr>[1]) => tr(settings?.preferred_language, key)
   const { siteUserId, isAdmin } = useAuth()
   const [form, setForm] = useState({
     display_name: '',
@@ -42,6 +44,7 @@ export default function EditProfile({ settings, saving, onSave }: Props) {
     location: '',
     nationality: '',
     github_username: '',
+    preferred_language: 'en' as PortfolioSettings['preferred_language'],
   })
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [avatarsLoading, setAvatarsLoading] = useState(false)
@@ -58,6 +61,7 @@ export default function EditProfile({ settings, saving, onSave }: Props) {
         location: settings.location,
         nationality: settings.nationality,
         github_username: settings.github_username,
+        preferred_language: settings.preferred_language ?? 'en',
       })
     }
   }, [settings])
@@ -95,7 +99,7 @@ export default function EditProfile({ settings, saving, onSave }: Props) {
     loadStoredAvatars()
   }, [siteUserId, isAdmin])
 
-  const set = (key: string, value: string) => setForm(f => ({ ...f, [key]: value }))
+  const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) => setForm(f => ({ ...f, [key]: value }))
 
   const handleAvatarUpload: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
     const file = e.target.files?.[0]
@@ -176,23 +180,23 @@ export default function EditProfile({ settings, saving, onSave }: Props) {
     <form className="edit-form" onSubmit={handleSubmit}>
       <div className="edit-form-grid">
         <div className="field">
-          <label>Display Name</label>
+          <label>{t('displayName')}</label>
           <input value={form.display_name} onChange={e => set('display_name', e.target.value)} placeholder="Your Name" />
         </div>
         <div className="field">
-          <label>Title / Role</label>
+          <label>{t('titleRole')}</label>
           <input value={form.title} onChange={e => set('title', e.target.value)} placeholder="Full Stack Developer" />
         </div>
         <div className="field field-full">
-          <label>Bio</label>
+          <label>{t('bio')}</label>
           <textarea value={form.bio} onChange={e => set('bio', e.target.value)} rows={4} placeholder="Tell visitors about yourself..." />
         </div>
         <div className="field">
-          <label>Avatar URL</label>
+          <label>{t('avatarUrl')}</label>
           <input value={form.avatar_url} onChange={e => set('avatar_url', e.target.value)} placeholder="https://..." />
         </div>
         <div className="field field-full avatar-manager">
-          <label>Avatar Upload & Management</label>
+          <label>{t('avatarManager')}</label>
           <div className="avatar-upload-row">
             <input
               type="file"
@@ -241,21 +245,27 @@ export default function EditProfile({ settings, saving, onSave }: Props) {
           </div>
         </div>
         <div className="field">
-          <label>Nationality</label>
+          <label>{t('nationality')}</label>
           <input value={form.nationality} onChange={e => set('nationality', e.target.value)} placeholder="Bangladeshi" />
         </div>
         <div className="field">
-          <label>Location</label>
+          <label>{t('location')}</label>
           <input value={form.location} onChange={e => set('location', e.target.value)} placeholder="Dhaka, Bangladesh" />
         </div>
         <div className="field">
-          <label>GitHub Username</label>
+          <label>{t('githubUsername')}</label>
           <input value={form.github_username} onChange={e => set('github_username', e.target.value)} placeholder="octocat" />
+        </div>
+        <div className="field">
+          <label>{t('language')}</label>
+          <select value={form.preferred_language} onChange={e => set('preferred_language', e.target.value as PortfolioSettings['preferred_language'])}>
+            <option value="en">English</option><option value="bn">বাংলা</option><option value="ja">日本語</option><option value="zh">简体中文</option><option value="th">ไทย</option><option value="id">Bahasa Indonesia</option><option value="ko">한국어</option>
+          </select>
         </div>
       </div>
       <div className="edit-form-footer">
         <button type="submit" className="btn-primary" disabled={saving}>
-          {saving ? 'Saving...' : 'Save Profile'}
+          {saving ? t('saving') : t('saveProfile')}
         </button>
       </div>
     </form>

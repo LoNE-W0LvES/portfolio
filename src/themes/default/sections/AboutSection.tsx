@@ -1,5 +1,6 @@
 import React from 'react'
 import type { PortfolioSettings } from '../../../lib/supabase'
+import { tr } from '../../../lib/i18n'
 
 interface Props { settings: PortfolioSettings | null }
 
@@ -10,15 +11,15 @@ export default function AboutSection({ settings }: Props) {
   return (
     <section id="about" className="section about-section snap-compact">
       <div className="section-inner">
-        <h2 className="section-title">About Me</h2>
+        <h2 className="section-title">{tr(settings?.preferred_language,'about')}</h2>
         <div className="about-grid">
           <div className="about-bio-col">
             {bio && <p className="about-bio">{bio}</p>}
           </div>
           <div className="about-info-col">
             {[
-              settings?.location && { icon: 'map-pin', label: 'Location', value: settings.location },
-              settings?.nationality && { icon: 'flag', label: 'Nationality', value: settings.nationality },
+              settings?.location && { icon: 'map-pin', label: tr(settings.preferred_language,'location'), value: settings.location },
+              settings?.nationality && { icon: 'flag', label: tr(settings.preferred_language,'nationality'), value: settings.nationality },
               settings?.phone && { icon: 'phone', label: 'Phone', value: settings.phone },
               settings?.email && { icon: 'mail', label: 'Email', value: settings.email, href: `mailto:${settings.email}` },
             ].filter(Boolean).map((item: any) => (
@@ -32,7 +33,7 @@ export default function AboutSection({ settings }: Props) {
             ))}
             {settings?.languages && settings.languages.length > 0 && (
               <div className="about-info-item about-info-item-col">
-                <span className="about-info-label">Languages</span>
+                <span className="about-info-label">{tr(settings.preferred_language,'languages')}</span>
                 <div className="about-langs">
                   {settings.languages.map((l, i) => (
                     <div key={i} className="about-lang">
