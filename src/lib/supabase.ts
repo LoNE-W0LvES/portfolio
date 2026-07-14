@@ -79,6 +79,7 @@ export interface PortfolioSettings {
   sections_visible: Record<string, boolean>
   theme: Theme
   viewer_theme: ViewerTheme
+  show_light_mode_bugs: boolean
   accent_color: string
   skills: Skill[]
   education: Education[]

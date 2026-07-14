@@ -1,9 +1,29 @@
+.default-portfolio {
+  --snap-page-bg: var(--bg);
+  --snap-vessel-bg: var(--bg2);
+}
+
+.default-portfolio[data-theme='light'],
+.default-portfolio.light,
+.default-portfolio.light-mode,
+.default-portfolio.theme-light,
+[data-theme='light'] .default-portfolio,
+.light .default-portfolio,
+.light-mode .default-portfolio,
+.theme-light .default-portfolio,
+body.light .default-portfolio,
+body.light-mode .default-portfolio,
+body.theme-light .default-portfolio {
+  --snap-page-bg: #edf1f6;
+  --snap-vessel-bg: #ffffff;
+}
+
 .default-portfolio > .section:not(.hero-section) {
   position: relative;
   display: flex;
   align-items: center;
   overflow: hidden;
-  background: var(--bg);
+  background: var(--snap-page-bg);
 }
 
 .default-portfolio > .section:not(.hero-section) > .section-inner {
@@ -17,7 +37,7 @@
   position: absolute;
   z-index: -1;
   inset: clamp(-88px, -8vh, -48px) -100vw;
-  background: var(--bg2);
+  background: var(--snap-vessel-bg);
 }
 
 @media (max-width: 720px), (max-height: 700px) {

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import './EditTheme.css'
 import type { PortfolioSettings, ViewerTheme } from '../../lib/supabase'
 
 interface Props {
@@ -16,15 +17,17 @@ const ACCENT_PRESETS = [
 export default function EditTheme({ settings, saving, onSave }: Props) {
   const [accent, setAccent] = useState('#3b82f6')
   const [viewerTheme, setViewerTheme] = useState<ViewerTheme>('default')
+  const [showLightModeBugs, setShowLightModeBugs] = useState(false)
 
   useEffect(() => {
     if (settings) {
       setAccent(settings.accent_color)
       setViewerTheme(settings.viewer_theme ?? 'default')
+      setShowLightModeBugs(settings.show_light_mode_bugs ?? false)
     }
   }, [settings])
 
-  const handleSave = () => onSave({ accent_color: accent, viewer_theme: viewerTheme })
+  const handleSave = () => onSave({ accent_color: accent, viewer_theme: viewerTheme, show_light_mode_bugs: showLightModeBugs })
 
   return (
     <div className="edit-theme-panel">
@@ -32,7 +35,7 @@ export default function EditTheme({ settings, saving, onSave }: Props) {
         <h3 className="edit-group-title">Portfolio Viewer Theme</h3>
         <p className="edit-hint" style={{ marginBottom: 0 }}>Changes only the public portfolio viewer. The editor keeps its current interface.</p>
         <div className="viewer-theme-grid">
-          <button type="button" className={`viewer-theme-card default-preview ${viewerTheme === 'default' ? 'active' : ''}`} onClick={() => setViewerTheme('default')}><span className="viewer-theme-visual"><i/><i/><i/></span><strong>Default</strong><small>Clean, familiar portfolio layout</small></button>
+          <div className={`viewer-theme-card default-preview ${viewerTheme === 'default' ? 'active' : ''}`} role="radio" aria-checked={viewerTheme === 'default'} tabIndex={0} onClick={() => setViewerTheme('default')} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') setViewerTheme('default') }}><span className="viewer-theme-visual"><i/><i/><i/></span><strong>Default</strong><small>Clean, familiar portfolio layout</small><label className="viewer-theme-checkbox" onClick={event => event.stopPropagation()}><input type="checkbox" checked={showLightModeBugs} onChange={event => setShowLightModeBugs(event.target.checked)} /><span>Show bugs in light mode</span></label></div>
           <button type="button" className={`viewer-theme-card kinetic-preview ${viewerTheme === 'kinetic' ? 'active' : ''}`} onClick={() => setViewerTheme('kinetic')}><span className="viewer-theme-visual"><b>MOVE</b><i/></span><strong>Kinetic</strong><small>Editorial layout with immersive motion</small></button>
         </div>
       </div>

@@ -10,6 +10,7 @@ ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS is_primary boolea
 ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS slug text;
 ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS is_published boolean NOT NULL DEFAULT false;
 ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS viewer_theme text NOT NULL DEFAULT 'default';
+ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS show_light_mode_bugs boolean NOT NULL DEFAULT false;
 ALTER TABLE public.portfolio_settings ADD COLUMN IF NOT EXISTS contacts jsonb NOT NULL DEFAULT '[]'::jsonb;
 ALTER TABLE public.portfolio_settings DROP CONSTRAINT IF EXISTS portfolio_settings_viewer_theme_check;
 ALTER TABLE public.portfolio_settings ADD CONSTRAINT portfolio_settings_viewer_theme_check CHECK(viewer_theme IN ('default','kinetic'));

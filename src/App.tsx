@@ -9,7 +9,6 @@ import BugOverlay from './components/BugOverlay'
 function ThemeApplicator({ children }: { children: React.ReactNode }) {
   const { settings, updateTheme } = usePortfolio()
   const [showBugs, setShowBugs] = useState(false)
-  const [prevTheme, setPrevTheme] = useState<string | null>(null)
 
   useEffect(() => {
     const root = document.documentElement
@@ -20,13 +19,11 @@ function ThemeApplicator({ children }: { children: React.ReactNode }) {
     root.style.setProperty('--accent', accent)
     root.style.setProperty('--accent-hover', accent + 'dd')
 
-    if (prevTheme === 'dark' && theme === 'light') {
-      setShowBugs(true)
-    }
-    setPrevTheme(theme)
-  }, [settings?.theme, settings?.accent_color])
+    const bugsEnabled = settings?.viewer_theme === 'default' && settings?.show_light_mode_bugs === true
+    setShowBugs(theme === 'light' && bugsEnabled)
+  }, [settings?.theme, settings?.accent_color, settings?.viewer_theme, settings?.show_light_mode_bugs])
 
-  const keepLight = () => setShowBugs(false)
+  const keepLight = () => setShowBugs(true)
 
   const switchDark = async () => {
     setShowBugs(false)

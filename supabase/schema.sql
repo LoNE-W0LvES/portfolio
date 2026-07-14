@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS portfolio_settings (
   sections_visible jsonb NOT NULL DEFAULT '{"hero":true,"about":true,"skills":true,"experience":true,"education":true,"repos":true,"cv_projects":true,"awards":true,"contact":true}'::jsonb,
   theme text NOT NULL DEFAULT 'dark',
   viewer_theme text NOT NULL DEFAULT 'default' CHECK (viewer_theme IN ('default','kinetic')),
+  show_light_mode_bugs boolean NOT NULL DEFAULT false,
   accent_color text NOT NULL DEFAULT '#3b82f6',
   phone text NOT NULL DEFAULT '',
   whatsapp text NOT NULL DEFAULT '',
