@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+const reservedUsernames = ['edit','api','admin','login','signup','lonewolves','donate','donation']
 
 function fail(res: any, status: number, error: string) {
   return res.status(status).json({ error })
@@ -56,15 +57,17 @@ export default async function handler(req: any, res: any) {
       const username = String(req.body?.username || '').trim().toLowerCase()
       if (password.length < 8) return fail(res, 400, 'Password must contain at least 8 characters.')
       if (!/^[a-z0-9_-]{3,30}$/.test(username)) return fail(res, 400, 'Username must be 3–30 lowercase letters, numbers, underscores, or hyphens.')
-      if (['edit','api','admin','login','signup','lonewolves'].includes(username)) return fail(res, 400, 'That username is reserved.')
+      if (reservedUsernames.includes(username)) return fail(res, 400, 'That username is reserved.')
       const { data: created, error: createError } = await admin.auth.admin.createUser({ email, password, email_confirm: false, user_metadata: { display_name: displayName, username } })
       if (createError || !created.user) throw createError || new Error('Auth user was not created.')
       const { data: linked } = await admin.from('site_user_emails').select('user_id').eq('auth_user_id', created.user.id).maybeSingle()
       if (linked) {
-        const { error } = await admin.from('site_users').update({ display_name: displayName, handle: username }).eq('id', linked.user_id)
+        const { error } = await admin.from('site_users').update({ display_name: displayName, handle: username, username_set: true }).eq('id', linked.user_id)
         if (error) throw error
+        const { error: portfolioError } = await admin.from('portfolio_settings').update({ display_name: displayName, slug: username }).eq('owner_id', linked.user_id)
+        if (portfolioError) throw portfolioError
       } else {
-        const { data: logical, error: logicalError } = await admin.from('site_users').insert({ display_name: displayName, handle: username, role: 'user', status: 'pending' }).select('id').single()
+        const { data: logical, error: logicalError } = await admin.from('site_users').insert({ display_name: displayName, handle: username, role: 'user', status: 'pending', username_set: true }).select('id').single()
         if (logicalError) { await admin.auth.admin.deleteUser(created.user.id); throw logicalError }
         const { error: emailError } = await admin.from('site_user_emails').insert({ user_id: logical.id, email, is_primary: true, auth_user_id: created.user.id })
         if (emailError) { await admin.from('site_users').delete().eq('id', logical.id); await admin.auth.admin.deleteUser(created.user.id); throw emailError }
@@ -83,7 +86,7 @@ export default async function handler(req: any, res: any) {
         const username = String(req.body?.username || '').trim().toLowerCase()
         if (!displayName) return fail(res, 400, 'Name is required.')
         if (!/^[a-z0-9_-]{3,30}$/.test(username)) return fail(res, 400, 'Username must be 3–30 lowercase letters, numbers, underscores, or hyphens.')
-        if (['edit','api','admin','login','signup','lonewolves'].includes(username)) return fail(res, 400, 'That username is reserved.')
+        if (reservedUsernames.includes(username)) return fail(res, 400, 'That username is reserved.')
         const { data: conflict } = await admin.from('site_users').select('id').eq('handle', username).neq('id', entry.user_id).maybeSingle()
         if (conflict) return fail(res, 409, 'That username is already in use.')
         const { error: userError } = await admin.from('site_users').update({ display_name: displayName, handle: username, username_set: true }).eq('id', entry.user_id)
@@ -91,7 +94,9 @@ export default async function handler(req: any, res: any) {
         const { error: portfolioError } = await admin.from('portfolio_settings').update({ display_name: displayName, slug: username }).eq('owner_id', entry.user_id)
         if (portfolioError) throw portfolioError
       } else if (req.body?.action === 'verify') {
-        if (!(entry as any).site_users?.username_set) return fail(res, 400, 'User must choose a username before approval.')
+        const { data: logicalUser } = await admin.from('site_users').select('handle,username_set').eq('id', entry.user_id).single()
+        const hasRealUsername = !!logicalUser?.username_set && !String(logicalUser.handle).startsWith('pending_')
+        if (!hasRealUsername) return fail(res, 400, 'User must choose a real username before approval.')
         if (entry.auth_user_id) {
           const { error } = await admin.auth.admin.updateUserById(entry.auth_user_id, { email_confirm: true })
           if (error) throw error

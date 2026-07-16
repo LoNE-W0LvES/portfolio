@@ -21,9 +21,10 @@ import EditBackup from '../components/edit/EditBackup'
 import EditServicesTestimonials from '../components/edit/EditServicesTestimonials'
 import EditCvExport from '../components/edit/EditCvExport'
 import EditAwardsRecognition from '../components/edit/EditAwardsRecognition'
+import EditDonations from '../components/edit/EditDonations'
 import { tr } from '../lib/i18n'
 
-type Tab = 'profile' | 'sections' | 'theme' | 'seo' | 'analytics' | 'backup' | 'cv_export' | 'services' | 'awards' | 'repos' | 'skills' | 'projects' | 'education' | 'certifications' | 'experience' | 'contacts' | 'users'
+type Tab = 'profile' | 'sections' | 'theme' | 'seo' | 'analytics' | 'backup' | 'cv_export' | 'services' | 'awards' | 'repos' | 'skills' | 'projects' | 'education' | 'certifications' | 'experience' | 'contacts' | 'users' | 'donations'
 
 export default function EditPage() {
   const { isOwner, isAdmin, username: currentUsername, loading: authLoading, signOut } = useAuth()
@@ -89,7 +90,7 @@ export default function EditPage() {
   const t = (key: Parameters<typeof tr>[1]) => tr(settings?.preferred_language, key)
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: 'profile', label:t('profile') },{ id:'sections',label:t('sections') },{ id:'skills',label:t('skills') },{ id:'education',label:t('education') },{ id:'certifications',label:t('certifications') },{ id:'services',label:t('services') },{ id:'awards',label:t('awards') },{ id:'experience',label:t('experience') },{ id:'contacts',label:t('contacts') },{ id:'projects',label:t('projects') },{ id:'repos',label:t('repos') },...(isAdmin?[{id:'users' as Tab,label:t('users')}]:[]),{id:'theme',label:t('theme')},{id:'seo',label:t('seo')},{id:'analytics',label:t('analytics')},{id:'backup',label:t('backup')},{id:'cv_export',label:t('exportCv')}
+    { id: 'profile', label:t('profile') },{ id:'sections',label:t('sections') },{ id:'skills',label:t('skills') },{ id:'education',label:t('education') },{ id:'certifications',label:t('certifications') },{ id:'services',label:t('services') },{ id:'awards',label:t('awards') },{ id:'experience',label:t('experience') },{ id:'contacts',label:t('contacts') },{ id:'projects',label:t('projects') },{ id:'repos',label:t('repos') },...(isAdmin?[{id:'users' as Tab,label:t('users')},{id:'donations' as Tab,label:'Donations'}]:[]),{id:'theme',label:t('theme')},{id:'seo',label:t('seo')},{id:'analytics',label:t('analytics')},{id:'backup',label:t('backup')},{id:'cv_export',label:t('exportCv')}
   ]
 
   return (
@@ -142,6 +143,7 @@ export default function EditPage() {
           />
         )}
         {tab === 'users' && isAdmin && <AdminUsers />}
+        {tab === 'donations' && isAdmin && <EditDonations />}
       </main>
     </div>
   )

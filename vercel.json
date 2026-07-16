@@ -6,6 +6,8 @@
     }
   ],
   "rewrites": [
+    { "source": "/donate", "destination": "/api/donate" },
+    { "source": "/donation", "destination": "/api/donate" },
     {
       "source": "/((?!api(?:/|$)).*)",
       "destination": "/index.html"

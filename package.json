@@ -24,6 +24,8 @@
     "@types/node": "^26.1.1",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
+    "@netlify/functions": "^4.2.5",
+    "@vercel/node": "^5.3.24",
     "@vitejs/plugin-react": "^4.5.2",
     "autoprefixer": "^10.5.2",
     "postcss": "^8.5.19",

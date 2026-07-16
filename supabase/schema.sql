@@ -101,6 +101,27 @@ CREATE TABLE IF NOT EXISTS site_user_emails (
   updated_at timestamptz DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS donation_settings (
+  id boolean PRIMARY KEY DEFAULT true CHECK (id),
+  website_enabled boolean NOT NULL DEFAULT false,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+INSERT INTO donation_settings (id) VALUES (true) ON CONFLICT (id) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS donation_methods (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  platform_name text NOT NULL,
+  payment_url text NOT NULL,
+  account_name text NOT NULL DEFAULT '',
+  description text NOT NULL DEFAULT '',
+  icon_url text NOT NULL DEFAULT '',
+  website_visible boolean NOT NULL DEFAULT true,
+  api_visible boolean NOT NULL DEFAULT true,
+  sort_order integer NOT NULL DEFAULT 0,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
 -- Triggers to keep updated_at fresh
 DROP TRIGGER IF EXISTS set_updated_at_portfolio_settings ON portfolio_settings;
 CREATE TRIGGER set_updated_at_portfolio_settings
@@ -122,11 +143,20 @@ CREATE TRIGGER set_updated_at_site_user_emails
 BEFORE UPDATE ON site_user_emails
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS set_updated_at_donation_settings ON donation_settings;
+CREATE TRIGGER set_updated_at_donation_settings BEFORE UPDATE ON donation_settings
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+DROP TRIGGER IF EXISTS set_updated_at_donation_methods ON donation_methods;
+CREATE TRIGGER set_updated_at_donation_methods BEFORE UPDATE ON donation_methods
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
 -- Enable Row Level Security where appropriate
 ALTER TABLE portfolio_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE repo_visibility ENABLE ROW LEVEL SECURITY;
 ALTER TABLE site_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE site_user_emails ENABLE ROW LEVEL SECURITY;
+ALTER TABLE donation_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE donation_methods ENABLE ROW LEVEL SECURITY;
 
 CREATE OR REPLACE FUNCTION public.is_site_admin()
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
@@ -158,7 +188,7 @@ GRANT EXECUTE ON FUNCTION public.is_site_verified() TO authenticated;
 CREATE OR REPLACE FUNCTION public.is_username_available(candidate text)
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$
   SELECT lower(candidate) ~ '^[a-z0-9_-]{3,30}$'
-    AND lower(candidate) NOT IN ('edit','api','admin','login','signup','lonewolves')
+    AND lower(candidate) NOT IN ('edit','api','admin','login','signup','lonewolves','donate','donation')
     AND NOT EXISTS (SELECT 1 FROM site_users WHERE handle=lower(candidate));
 $$;
 GRANT EXECUTE ON FUNCTION public.is_username_available(text) TO anon, authenticated;
@@ -224,6 +254,18 @@ $$;
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users
 FOR EACH ROW EXECUTE FUNCTION public.handle_new_auth_user();
+
+-- Repair older rows where a real portfolio slug was saved but username_set was
+-- left false by an earlier admin create-user flow.
+UPDATE site_users u
+SET handle = lower(p.slug), username_set = true
+FROM portfolio_settings p
+WHERE p.owner_id = u.id
+  AND p.slug IS NOT NULL
+  AND lower(p.slug) ~ '^[a-z0-9_-]{3,30}$'
+  AND lower(p.slug) NOT IN ('edit','api','admin','login','signup','donate','donation')
+  AND (u.username_set = false OR u.handle LIKE 'pending\_%' ESCAPE '\')
+  AND NOT EXISTS (SELECT 1 FROM site_users other WHERE other.id <> u.id AND other.handle = lower(p.slug));
 
 -- Initial administrator: one logical account with three permitted login emails.
 DO $$
@@ -326,6 +368,21 @@ CREATE POLICY "auth_update_site_user_emails" ON site_user_emails FOR UPDATE
 DROP POLICY IF EXISTS "auth_delete_site_user_emails" ON site_user_emails;
 CREATE POLICY "auth_delete_site_user_emails" ON site_user_emails FOR DELETE
   TO authenticated USING (public.is_site_admin());
+
+DROP POLICY IF EXISTS "public_select_donation_settings" ON donation_settings;
+CREATE POLICY "public_select_donation_settings" ON donation_settings FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS "admin_update_donation_settings" ON donation_settings;
+CREATE POLICY "admin_update_donation_settings" ON donation_settings FOR UPDATE TO authenticated
+USING (public.is_site_admin()) WITH CHECK (public.is_site_admin());
+DROP POLICY IF EXISTS "public_select_donation_methods" ON donation_methods;
+CREATE POLICY "public_select_donation_methods" ON donation_methods FOR SELECT TO anon, authenticated USING (true);
+DROP POLICY IF EXISTS "admin_insert_donation_methods" ON donation_methods;
+CREATE POLICY "admin_insert_donation_methods" ON donation_methods FOR INSERT TO authenticated WITH CHECK (public.is_site_admin());
+DROP POLICY IF EXISTS "admin_update_donation_methods" ON donation_methods;
+CREATE POLICY "admin_update_donation_methods" ON donation_methods FOR UPDATE TO authenticated
+USING (public.is_site_admin()) WITH CHECK (public.is_site_admin());
+DROP POLICY IF EXISTS "admin_delete_donation_methods" ON donation_methods;
+CREATE POLICY "admin_delete_donation_methods" ON donation_methods FOR DELETE TO authenticated USING (public.is_site_admin());
 
 -- Public avatar bucket. Only authenticated emails in the site's allowlist may
 -- list, upload, or delete objects; visitors can display files via public URLs.

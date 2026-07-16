@@ -3,6 +3,7 @@ import { motion, useScroll, useTransform } from 'motion/react'
 import type { GitHubRepo, PortfolioSettings } from '../../lib/supabase'
 import { contactLogo, getContactLinks } from '../../lib/contacts'
 import './kinetic.css'
+import DonationFooter from '../../components/DonationFooter'
 
 interface Props { settings: PortfolioSettings; repos: GitHubRepo[]; reposLoading: boolean }
 const reveal = { initial: { opacity: 0, y: 70 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, amount: .15 }, transition: { duration: .85, ease: [0.22, 1, 0.36, 1] as const } }
@@ -89,5 +90,6 @@ export default function KineticPortfolio({ settings, repos, reposLoading }: Prop
     {!!settings.cv_projects?.length && <section className="kinetic-section kinetic-editorial"><span className="kinetic-index">06 / Portfolio projects</span><div className="kinetic-editorial-grid">{settings.cv_projects.map((item,i) => <motion.article key={i} {...reveal}><span>0{i+1}</span><h3>{item.title}</h3><p>{item.description}</p><div>{item.tags.map(tag => <small key={tag}>{tag}</small>)}</div></motion.article>)}</div></section>}
     {(!!settings.awards?.length || !!settings.languages?.length) && <section className="kinetic-section kinetic-recognition"><span className="kinetic-index">07 / Recognition & languages</span><div>{settings.awards?.map((award,i) => <motion.article key={i} {...reveal}><b>{award.year}</b><span>{award.title}</span><small>{award.org}</small></motion.article>)}</div><div>{settings.languages?.map((language,i) => <motion.article key={i} {...reveal}><b>{String(i+1).padStart(2,'0')}</b><span>{language.name}</span><small>{language.level}</small></motion.article>)}</div></section>}
     <section id="contact-k" className="kinetic-contact"><motion.p {...reveal}>Have a project in mind?</motion.p><motion.a {...reveal} href={contacts[0]?.platform_link || '#top'}>Let's create<br/>something <i>alive.</i></motion.a><div className="kinetic-contact-grid">{contacts.map((contact,index) => <a href={contact.platform_link} target={contact.platform_link.startsWith('http') ? '_blank' : undefined} rel="noreferrer" key={`${contact.platform_name}-${index}`}>{contactLogo(contact.platform_link) && <img src={contactLogo(contact.platform_link)} alt="" width="24" height="24" />}<span>{contact.platform_name}</span>{contact.platform_username || 'Open link'} ↗</a>)}</div><footer><span>© {new Date().getFullYear()} {settings.display_name}</span><span>{settings.location}</span></footer></section>
+    <DonationFooter language={settings.preferred_language} />
   </main>
 }

@@ -12,6 +12,7 @@ import ContactSection from './sections/ContactSection'
 import CertificationsSection from './sections/CertificationsSection'
 import ServicesSection from './sections/ServicesSection'
 import TestimonialsSection from './sections/TestimonialsSection'
+import DonationFooter from '../../components/DonationFooter'
 
 interface Props { settings: PortfolioSettings; repos: GitHubRepo[]; reposLoading: boolean; onThemeToggle: (theme: Theme) => void }
 
@@ -32,5 +33,6 @@ export default function DefaultPortfolio({ settings, repos, reposLoading, onThem
   return <div className="portfolio default-portfolio">
     <button className="theme-toggle-fab" onClick={() => onThemeToggle(settings.theme === 'dark' ? 'light' : 'dark')} aria-label="Toggle color mode">◐</button>
     {order.filter(section => vis[section] !== false).map(section => sectionMap[section] ?? null)}
+    <DonationFooter language={settings.preferred_language} />
   </div>
 }
