@@ -27,7 +27,7 @@ export default async function handler(req: any, res: any) {
   try {
     if (req.method === 'GET') {
       const [{ data: logicalUsers, error }, { data: authUsers, error: listError }] = await Promise.all([
-        admin.from('site_users').select('id, handle, display_name, role, status, username_set, site_user_emails(email, auth_user_id)').order('created_at'),
+        admin.from('site_users').select('id, handle, display_name, role, status, username_set, site_user_emails(email, auth_user_id), portfolio_settings(show_donation_button)').order('created_at'),
         admin.auth.admin.listUsers({ page: 1, perPage: 1000 }),
       ])
       if (error) throw error
@@ -40,6 +40,7 @@ export default async function handler(req: any, res: any) {
         role: user.role,
         status: user.status,
         username_set: user.username_set,
+        show_donation_button: user.portfolio_settings?.[0]?.show_donation_button === true,
         emails: (user.site_user_emails ?? []).map((entry: any) => ({
           email: entry.email,
           verified: !!authById.get(entry.auth_user_id)?.email_confirmed_at,
@@ -105,6 +106,9 @@ export default async function handler(req: any, res: any) {
         if (error) throw error
         const { error: publishError } = await admin.from('portfolio_settings').update({ is_published: true }).eq('owner_id', entry.user_id)
         if (publishError) throw publishError
+      } else if (req.body?.action === 'donation_visibility') {
+        const { error } = await admin.from('portfolio_settings').update({ show_donation_button: req.body?.enabled === true }).eq('owner_id', entry.user_id)
+        if (error) throw error
       } else if (req.body?.action === 'reset') {
         const origin = `https://${req.headers.host}`
         const { error } = await authClient.auth.resetPasswordForEmail(email, { redirectTo: `${origin}/login` })

@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS portfolio_settings (
   theme text NOT NULL DEFAULT 'dark',
   viewer_theme text NOT NULL DEFAULT 'default' CHECK (viewer_theme IN ('default','kinetic')),
   show_light_mode_bugs boolean NOT NULL DEFAULT false,
+  show_donation_button boolean NOT NULL DEFAULT false,
   preferred_language text NOT NULL DEFAULT 'en' CHECK (preferred_language IN ('en','bn','ja','zh','th','id','ko')),
   seo_title text NOT NULL DEFAULT '',
   seo_description text NOT NULL DEFAULT '',

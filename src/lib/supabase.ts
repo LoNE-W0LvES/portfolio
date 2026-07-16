@@ -106,6 +106,7 @@ export interface PortfolioSettings {
   theme: Theme
   viewer_theme: ViewerTheme
   show_light_mode_bugs: boolean
+  show_donation_button: boolean
   preferred_language: PortfolioLanguage
   seo_title: string
   seo_description: string

@@ -12,7 +12,7 @@ export async function donationPayload(channel: DonationChannel) {
   if (settingsResult.error) throw settingsResult.error
   if (methodsResult.error) throw methodsResult.error
   const visible = (methodsResult.data || []).filter(row => channel === 'website' ? row.website_visible : row.api_visible)
-  const enabled = visible.length > 0 && (channel === 'api' || settingsResult.data?.website_enabled === true)
+  const enabled = visible.length > 0
   return {
     schema_version: 1, enabled, channel,
     updated_at: [settingsResult.data?.updated_at, ...visible.map(row => row.updated_at)].filter(Boolean).sort().at(-1) || null,

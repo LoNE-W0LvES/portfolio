@@ -8,6 +8,7 @@ interface ManagedUser {
   role: 'admin' | 'user'
   status: 'pending' | 'verified'
   username_set: boolean
+  show_donation_button: boolean
   emails: { email: string; verified: boolean }[]
 }
 
@@ -23,7 +24,6 @@ export default function AdminUsers() {
   const [editingUser, setEditingUser] = useState<ManagedUser | null>(null)
   const [editName, setEditName] = useState('')
   const [editUsername, setEditUsername] = useState('')
-  const [donationsEnabled, setDonationsEnabled] = useState(false)
 
   const request = async (method: string, body?: object) => {
     const { data: { session } } = await supabase.auth.getSession()
@@ -46,8 +46,6 @@ export default function AdminUsers() {
   const load = async () => {
     try {
       setUsers((await request('GET')).users)
-      const { data } = await supabase.from('donation_settings').select('website_enabled').eq('id', true).maybeSingle()
-      setDonationsEnabled(data?.website_enabled === true)
     }
     catch (error) { setMessage(error instanceof Error ? error.message : 'Could not load users') }
   }
@@ -82,11 +80,6 @@ export default function AdminUsers() {
     <div className="admin-users">
       <h2>User Management</h2>
       <p className="edit-hint">Regular users have one login email. Only admins can manage accounts.</p>
-      <div className="edit-edu-card">
-        <div className="admin-user-heading"><div><strong>Portfolio donation button</strong><span>Global website switch. The public API remains available.</span></div>
-          <label className="donation-check"><input type="checkbox" checked={donationsEnabled} disabled={busy} onChange={async e=>{const next=e.target.checked;setDonationsEnabled(next);const {error}=await supabase.from('donation_settings').update({website_enabled:next}).eq('id',true);if(error){setDonationsEnabled(!next);setMessage(error.message)}else setMessage(next?'Donation button enabled.':'Donation button hidden.')}}/> Enabled</label>
-        </div>
-      </div>
       {message && <p className="admin-message">{message}</p>}
       <div><button className="btn-primary" onClick={() => setShowCreate(true)}>+ Create User</button></div>
       {showCreate && <div className="admin-modal-overlay" role="presentation" onMouseDown={e => { if (e.target === e.currentTarget) setShowCreate(false) }}>
@@ -126,6 +119,17 @@ export default function AdminUsers() {
                 </div>}
               </div>
             ))}
+            <label className="donation-check admin-profile-donation">
+              <input type="checkbox" checked={user.show_donation_button} disabled={busy} onChange={e => {
+                const enabled = e.target.checked
+                setUsers(current => current.map(item => item.id === user.id ? { ...item, show_donation_button: enabled } : item))
+                run(async () => {
+                  await request('PATCH', { action: 'donation_visibility', email: user.emails[0]?.email, enabled })
+                  setMessage(enabled ? `Donation button enabled for /${user.username}/.` : `Donation button hidden for /${user.username}/.`)
+                })
+              }}/>
+              Show the global donation button on this portfolio
+            </label>
           </div>
         ))}
       </div>

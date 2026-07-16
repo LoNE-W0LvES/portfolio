@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS public.donation_settings (
   website_enabled boolean NOT NULL DEFAULT false,
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+ALTER TABLE public.portfolio_settings
+  ADD COLUMN IF NOT EXISTS show_donation_button boolean NOT NULL DEFAULT false;
 INSERT INTO public.donation_settings (id) VALUES (true) ON CONFLICT (id) DO NOTHING;
 CREATE TABLE IF NOT EXISTS public.donation_methods (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), platform_name text NOT NULL, payment_url text NOT NULL,

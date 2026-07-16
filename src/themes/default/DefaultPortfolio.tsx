@@ -33,6 +33,6 @@ export default function DefaultPortfolio({ settings, repos, reposLoading, onThem
   return <div className="portfolio default-portfolio">
     <button className="theme-toggle-fab" onClick={() => onThemeToggle(settings.theme === 'dark' ? 'light' : 'dark')} aria-label="Toggle color mode">◐</button>
     {order.filter(section => vis[section] !== false).map(section => sectionMap[section] ?? null)}
-    <DonationFooter language={settings.preferred_language} />
+    <DonationFooter language={settings.preferred_language} enabled={settings.show_donation_button} />
   </div>
 }
