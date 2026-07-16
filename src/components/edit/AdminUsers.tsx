@@ -52,9 +52,9 @@ export default function AdminUsers() {
 
   useEffect(() => { load() }, [])
 
-  const run = async (action: () => Promise<void>) => {
+  const run = async (action: () => Promise<void>, reload = true) => {
     setBusy(true); setMessage('')
-    try { await action(); await load() }
+    try { await action(); if (reload) await load() }
     catch (error) { setMessage(error instanceof Error ? error.message : 'Operation failed') }
     finally { setBusy(false) }
   }
@@ -119,17 +119,30 @@ export default function AdminUsers() {
                 </div>}
               </div>
             ))}
-            <label className="donation-check admin-profile-donation">
-              <input type="checkbox" checked={user.show_donation_button} disabled={busy} onChange={e => {
-                const enabled = e.target.checked
-                setUsers(current => current.map(item => item.id === user.id ? { ...item, show_donation_button: enabled } : item))
-                run(async () => {
-                  await request('PATCH', { action: 'donation_visibility', email: user.emails[0]?.email, enabled })
-                  setMessage(enabled ? `Donation button enabled for /${user.username}/.` : `Donation button hidden for /${user.username}/.`)
-                })
-              }}/>
-              Show the global donation button on this portfolio
-            </label>
+            <div className="admin-profile-donation">
+              <button
+                type="button"
+                className={user.show_donation_button ? 'btn-primary' : 'btn-outline'}
+                disabled={busy || !user.emails[0]}
+                aria-pressed={user.show_donation_button}
+                onClick={() => {
+                  const enabled = !user.show_donation_button
+                  const previous = user.show_donation_button
+                  setUsers(current => current.map(item => item.id === user.id ? { ...item, show_donation_button: enabled } : item))
+                  run(async () => {
+                    try {
+                      await request('PATCH', { action: 'donation_visibility', email: user.emails[0].email, enabled })
+                      setMessage(enabled ? 'Donation shown.' : 'Donation hidden.')
+                    } catch (error) {
+                      setUsers(current => current.map(item => item.id === user.id ? { ...item, show_donation_button: previous } : item))
+                      throw error
+                    }
+                  }, false)
+                }}
+              >
+                {user.show_donation_button ? 'Hide Donation' : 'Show Donation'}
+              </button>
+            </div>
           </div>
         ))}
       </div>

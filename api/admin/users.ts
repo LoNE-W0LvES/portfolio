@@ -33,19 +33,22 @@ export default async function handler(req: any, res: any) {
       if (error) throw error
       if (listError) throw listError
       const authById = new Map(authUsers.users.map(user => [user.id, user]))
-      const users = (logicalUsers ?? []).map((user: any) => ({
-        id: user.id,
-        display_name: user.display_name,
-        username: user.handle,
-        role: user.role,
-        status: user.status,
-        username_set: user.username_set,
-        show_donation_button: user.portfolio_settings?.[0]?.show_donation_button === true,
-        emails: (user.site_user_emails ?? []).map((entry: any) => ({
-          email: entry.email,
-          verified: !!authById.get(entry.auth_user_id)?.email_confirmed_at,
-        })),
-      }))
+      const users = (logicalUsers ?? []).map((user: any) => {
+        const portfolio = Array.isArray(user.portfolio_settings) ? user.portfolio_settings[0] : user.portfolio_settings
+        return {
+          id: user.id,
+          display_name: user.display_name,
+          username: user.handle,
+          role: user.role,
+          status: user.status,
+          username_set: user.username_set,
+          show_donation_button: portfolio?.show_donation_button === true,
+          emails: (user.site_user_emails ?? []).map((entry: any) => ({
+            email: entry.email,
+            verified: !!authById.get(entry.auth_user_id)?.email_confirmed_at,
+          })),
+        }
+      })
       return res.status(200).json({ users })
     }
 
@@ -79,10 +82,11 @@ export default async function handler(req: any, res: any) {
 
     const { data: entry, error: entryError } = await admin.from('site_user_emails').select('user_id, auth_user_id, site_users!inner(role, username_set)').ilike('email', email).maybeSingle()
     if (entryError || !entry) return fail(res, 404, 'Managed user not found.')
-    if ((entry as any).site_users?.role === 'admin') return fail(res, 403, 'Admin accounts cannot be changed here.')
+    const targetIsAdmin = (entry as any).site_users?.role === 'admin'
 
     if (req.method === 'PATCH') {
       if (req.body?.action === 'edit') {
+        if (targetIsAdmin) return fail(res, 403, 'Admin accounts cannot be edited here.')
         const displayName = String(req.body?.display_name || '').trim()
         const username = String(req.body?.username || '').trim().toLowerCase()
         if (!displayName) return fail(res, 400, 'Name is required.')
@@ -95,6 +99,7 @@ export default async function handler(req: any, res: any) {
         const { error: portfolioError } = await admin.from('portfolio_settings').update({ display_name: displayName, slug: username }).eq('owner_id', entry.user_id)
         if (portfolioError) throw portfolioError
       } else if (req.body?.action === 'verify') {
+        if (targetIsAdmin) return fail(res, 403, 'Admin accounts are already verified.')
         const { data: logicalUser } = await admin.from('site_users').select('handle,username_set').eq('id', entry.user_id).single()
         const hasRealUsername = !!logicalUser?.username_set && !String(logicalUser.handle).startsWith('pending_')
         if (!hasRealUsername) return fail(res, 400, 'User must choose a real username before approval.')
@@ -107,9 +112,17 @@ export default async function handler(req: any, res: any) {
         const { error: publishError } = await admin.from('portfolio_settings').update({ is_published: true }).eq('owner_id', entry.user_id)
         if (publishError) throw publishError
       } else if (req.body?.action === 'donation_visibility') {
-        const { error } = await admin.from('portfolio_settings').update({ show_donation_button: req.body?.enabled === true }).eq('owner_id', entry.user_id)
+        const enabled = req.body?.enabled === true
+        const { data: updated, error } = await admin.from('portfolio_settings')
+          .update({ show_donation_button: enabled })
+          .eq('owner_id', entry.user_id)
+          .select('show_donation_button')
+          .maybeSingle()
         if (error) throw error
+        if (!updated) throw new Error('This user does not have a portfolio settings row.')
+        if (updated.show_donation_button !== enabled) throw new Error('Donation visibility was not saved.')
       } else if (req.body?.action === 'reset') {
+        if (targetIsAdmin) return fail(res, 403, 'Admin passwords cannot be reset here.')
         const origin = `https://${req.headers.host}`
         const { error } = await authClient.auth.resetPasswordForEmail(email, { redirectTo: `${origin}/login` })
         if (error) throw error
@@ -118,6 +131,7 @@ export default async function handler(req: any, res: any) {
     }
 
     if (req.method === 'DELETE') {
+      if (targetIsAdmin) return fail(res, 403, 'Admin accounts cannot be deleted.')
       if (entry.auth_user_id) {
         const { error } = await admin.auth.admin.deleteUser(entry.auth_user_id)
         if (error) throw error

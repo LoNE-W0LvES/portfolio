@@ -10,6 +10,30 @@
   from = "/donation"
   to = "/.netlify/functions/donate"
   status = 200
+
+[[redirects]]
+  from = "/api/donate"
+  to = "/.netlify/functions/donate"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin/users"
+  to = "/.netlify/functions/admin-users"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin/donations"
+  to = "/.netlify/functions/admin-donations"
+  status = 200
+
+[[redirects]]
+  from = "/api/cron/keep-alive"
+  to = "/.netlify/functions/keep-alive"
+  status = 200
+
+[functions."keep-alive"]
+  schedule = "0 0 */4 * *"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

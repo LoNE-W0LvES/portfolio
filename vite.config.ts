@@ -12,6 +12,7 @@ function localApiPlugin(): Plugin {
         const pathname = new URL(req.url || '/', 'http://localhost').pathname
         const modules: Record<string, () => Promise<{ default: (req: any, res: any) => unknown }>> = {
           '/api/admin/users': () => import('./api/admin/users'),
+          '/api/admin/donations': () => import('./api/admin/donations'),
           '/api/donate': () => import('./api/donate'),
           '/donate': () => import('./api/donate'),
           '/donation': () => import('./api/donate'),
